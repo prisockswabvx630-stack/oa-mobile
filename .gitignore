@@ -1,0 +1,47 @@
+# 依赖目录（不提交）
+node_modules/
+.pnp
+.pnp.js
+
+# 构建输出（不提交，由CI/CD在服务器上构建）
+dist/
+build/
+.expo/
+
+# 环境变量（敏感信息，不提交）
+.env
+.env.local
+.env.*.local
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# 编辑器
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# TypeScript 编译缓存
+*.tsbuildinfo
+
+# Prisma 生成文件（运行时生成）
+# oa_server/node_modules/ 已被上面的规则覆盖
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 临时文件
+*.tmp
+*.temp

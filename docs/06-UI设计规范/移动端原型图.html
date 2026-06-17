@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能OA办公系统 - 移动端原型图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+.header { text-align: center; margin-bottom: 20px; }
+.header h1 { font-size: 22px; color: #1a1a2e; margin-bottom: 6px; }
+.header p { font-size: 13px; color: #8c8c8c; }
+.phone-container { width: 375px; height: 812px; background: #fff; border-radius: 40px; border: 8px solid #1a1a2e; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.status-bar { height: 44px; background: #4f46e5; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; color: #fff; font-size: 12px; font-weight: 600; }
+.status-bar .notch { width: 120px; height: 28px; background: #1a1a2e; border-radius: 0 0 16px 16px; position: absolute; left: 50%; transform: translateX(-50%); top: 0; }
+.page { display: none; height: calc(100% - 44px); overflow-y: auto; background: #f5f7fa; }
+.page.active { display: block; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.page::-webkit-scrollbar { width: 0; }
+
+/* Mobile Toast */
+.m-toast { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 13px; z-index: 999; animation: mToastIn 0.2s; pointer-events: none; }
+@keyframes mToastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Mobile Modal */
+.m-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 900; display: flex; align-items: flex-end; animation: fadeIn 0.2s; }
+.m-modal { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-height: 80%; overflow-y: auto; padding-bottom: 34px; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.m-modal-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; position: sticky; top: 0; background: #fff; z-index: 1; }
+.m-modal-header h3 { font-size: 16px; font-weight: 600; }
+.m-modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #6b7280; border: none; }
+.m-modal-body { padding: 20px; }
+.m-modal-footer { padding: 16px 20px; display: flex; gap: 12px; border-top: 1px solid #f3f4f6; position: sticky; bottom: 0; background: #fff; }
+.m-btn { flex: 1; height: 44px; border-radius: 22px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+.m-btn-primary { background: #4f46e5; color: #fff; }
+.m-btn-danger { background: #fee2e2; color: #ef4444; }
+.m-btn-default { background: #f3f4f6; color: #374151; }
+.m-btn:active { opacity: 0.8; }
+
+/* ===== Login Page ===== */
+.login-page { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+.login-logo { width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.login-logo span { font-size: 36px; color: #fff; }
+.login-title { color: #fff; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+.login-subtitle { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 40px; }
+.login-form { width: 100%; }
+.login-input { width: 100%; height: 48px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 0 20px; color: #fff; font-size: 14px; margin-bottom: 16px; outline: none; }
+.login-input::placeholder { color: rgba(255,255,255,0.5); }
+.login-btn { width: 100%; height: 48px; background: #fff; color: #4f46e5; border: none; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.login-btn:active { transform: scale(0.98); opacity: 0.8; }
+.login-options { display: flex; justify-content: space-between; margin-top: 16px; color: rgba(255,255,255,0.6); font-size: 12px; }
+.login-sso { margin-top: 32px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; }
+.login-sso-btns { display: flex; gap: 20px; justify-content: center; margin-top: 12px; }
+.login-sso-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+/* ===== Nav Bar ===== */
+.nav-header { height: 44px; background: #4f46e5; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; color: #fff; }
+.nav-header .title { font-size: 17px; font-weight: 600; }
+.nav-header .back { font-size: 20px; cursor: pointer; }
+.nav-header .action { font-size: 20px; cursor: pointer; }
+
+/* ===== Bottom Tab Bar ===== */
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 83px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 8px; z-index: 100; }
+.tab-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 10px; color: #9ca3af; gap: 2px; }
+.tab-item.active { color: #4f46e5; }
+.tab-item .icon { font-size: 22px; line-height: 1; }
+.tab-badge { position: absolute; top: -4px; right: -8px; background: #ef4444; color: #fff; font-size: 10px; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+
+/* ===== Workbench Page ===== */
+.wb-header { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 16px 20px 20px; color: #fff; position: relative; }
+.wb-greeting { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.wb-sub { font-size: 13px; opacity: 0.8; }
+.wb-header-row { display: flex; justify-content: space-between; align-items: center; }
+.wb-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+.wb-icons { display: flex; gap: 16px; }
+.wb-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 16px; position: relative; }
+.wb-search { margin: -12px 16px 0; height: 40px; background: #fff; border-radius: 20px; display: flex; align-items: center; padding: 0 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-size: 13px; color: #9ca3af; }
+.section-title { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 12px; font-size: 16px; font-weight: 600; color: #1f2937; }
+.section-title .more { font-size: 12px; color: #4f46e5; font-weight: 400; }
+.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 0 16px; }
+.quick-item { display: flex; flex-direction: column; align-items: center; padding: 12px 0; cursor: pointer; border-radius: 8px; transition: background 0.15s; }
+.quick-item:active { background: rgba(0,0,0,0.05); }
+.quick-item .qi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 6px; }
+.quick-item .qi-label { font-size: 11px; color: #374151; }
+.qi-purple { background: #ede9fe; }
+.qi-green { background: #d1fae5; }
+.qi-blue { background: #dbeafe; }
+.qi-orange { background: #ffedd5; }
+.qi-pink { background: #fce7f3; }
+.qi-teal { background: #ccfbf1; }
+.qi-amber { background: #fef3c7; }
+.qi-red { background: #fee2e2; }
+.todo-card { margin: 0 16px 8px; background: #fff; border-radius: 12px; padding: 14px 16px; border-left: 4px solid #f59e0b; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.todo-card.blue { border-left-color: #3b82f6; }
+.todo-card.green { border-left-color: #10b981; }
+.todo-card .todo-title { font-size: 14px; font-weight: 500; color: #1f2937; margin-bottom: 4px; }
+.todo-card .todo-desc { font-size: 12px; color: #9ca3af; }
+.todo-card .todo-action { display: inline-block; margin-top: 8px; padding: 4px 12px; background: #ede9fe; color: #4f46e5; border-radius: 12px; font-size: 12px; }
+.notice-card { margin: 0 16px 8px; background: #fff; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.notice-card .nc-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.nc-tag.announce { background: #fef3c7; color: #d97706; }
+.nc-tag.policy { background: #ede9fe; color: #6d28d9; }
+.notice-card .nc-info { flex: 1; }
+.notice-card .nc-title { font-size: 14px; color: #1f2937; margin-bottom: 2px; }
+.notice-card .nc-meta { font-size: 11px; color: #9ca3af; }
+
+/* ===== Attendance Page ===== */
+.attend-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; text-align: center; color: #fff; }
+.attend-clock { font-size: 48px; font-weight: 700; margin: 12px 0 4px; }
+.attend-date { font-size: 14px; opacity: 0.8; }
+.attend-status { display: flex; justify-content: space-around; margin: 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.attend-item { text-align: center; }
+.attend-item .ai-label { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
+.attend-item .ai-time { font-size: 16px; font-weight: 600; color: #1f2937; }
+.attend-item .ai-status { font-size: 11px; margin-top: 2px; }
+.ai-status.normal { color: #10b981; }
+.ai-status.none { color: #9ca3af; }
+.attend-punch { display: flex; justify-content: center; gap: 24px; margin: 24px 0; }
+.punch-btn { width: 100px; height: 100px; border-radius: 50%; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.punch-btn:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.punch-btn.punched { opacity: 0.5; pointer-events: none; }
+.punch-btn.in { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.punch-btn.out { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.punch-btn .pb-icon { font-size: 24px; }
+.attend-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 16px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.stat-card .sc-val { font-size: 24px; font-weight: 700; color: #4f46e5; }
+.stat-card .sc-label { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+/* ===== Approval Page ===== */
+.approval-tabs { display: flex; background: #fff; padding: 0 16px; border-bottom: 1px solid #e5e7eb; }
+.ap-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #9ca3af; cursor: pointer; position: relative; }
+.ap-tab.active { color: #4f46e5; font-weight: 600; }
+.ap-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 3px; background: #4f46e5; border-radius: 2px; }
+.approval-list { padding: 12px 16px; }
+.apl-card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: box-shadow 0.15s; }
+.apl-card:active { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.apl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.apl-type { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.type-leave { background: #dbeafe; color: #2563eb; }
+.type-expense { background: #fef3c7; color: #d97706; }
+.type-travel { background: #d1fae5; color: #059669; }
+.type-overtime { background: #ede9fe; color: #7c3aed; }
+.type-purchase { background: #fce7f3; color: #db2777; }
+.type-seal { background: #fee2e2; color: #dc2626; }
+.apl-time { font-size: 11px; color: #9ca3af; }
+.apl-title { font-size: 15px; font-weight: 500; color: #1f2937; margin-bottom: 6px; }
+.apl-desc { font-size: 12px; color: #6b7280; margin-bottom: 10px; display: flex; gap: 16px; }
+.apl-footer { display: flex; justify-content: space-between; align-items: center; }
+.apl-user { display: flex; align-items: center; gap: 8px; }
+.apl-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #4f46e5; font-weight: 600; }
+.apl-name { font-size: 13px; color: #374151; }
+.apl-actions { display: flex; gap: 8px; }
+.apl-btn { padding: 4px 14px; border-radius: 14px; font-size: 12px; border: none; cursor: pointer; }
+.apl-btn.agree { background: #d1fae5; color: #059669; }
+.apl-btn.reject { background: #fee2e2; color: #dc2626; }
+
+/* ===== Contacts Page ===== */
+.contact-search { margin: 12px 16px; height: 36px; background: #fff; border-radius: 18px; display: flex; align-items: center; padding: 0 16px; font-size: 13px; color: #9ca3af; border: 1px solid #e5e7eb; }
+.contact-dept { padding: 8px 16px; font-size: 13px; font-weight: 600; color: #6b7280; background: #f9fafb; }
+.contact-item { display: flex; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.15s; }
+.contact-item:active { background: #f9fafb; }
+.contact-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; margin-right: 12px; }
+.ca-blue { background: #4f46e5; }
+.ca-green { background: #10b981; }
+.ca-orange { background: #f59e0b; }
+.ca-pink { background: #ec4899; }
+.ca-teal { background: #14b8a6; }
+.contact-info { flex: 1; }
+.contact-name { font-size: 15px; font-weight: 500; color: #1f2937; }
+.contact-pos { font-size: 12px; color: #9ca3af; }
+.contact-call { width: 32px; height: 32px; border-radius: 50%; background: #ecfdf5; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+/* ===== Messages Page ===== */
+.msg-tabs { display: flex; background: #fff; padding: 0 16px; border-bottom: 1px solid #e5e7eb; }
+.msg-item { display: flex; padding: 14px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; gap: 12px; }
+.msg-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.msg-info { flex: 1; }
+.msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.msg-name { font-size: 15px; font-weight: 500; color: #1f2937; }
+.msg-time { font-size: 11px; color: #9ca3af; }
+.msg-content { font-size: 13px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-unread { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; position: absolute; }
+
+/* ===== Personnel Page ===== */
+.person-list { padding: 12px 16px; }
+.person-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; gap: 12px; }
+.person-card .pc-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: 600; }
+.person-card .pc-info { flex: 1; }
+.person-card .pc-name { font-size: 15px; font-weight: 600; color: #1f2937; }
+.person-card .pc-dept { font-size: 12px; color: #6b7280; margin: 2px 0; }
+.person-card .pc-tags { display: flex; gap: 6px; margin-top: 6px; }
+.person-card .pc-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.tag-active { background: #d1fae5; color: #059669; }
+.tag-probation { background: #fef3c7; color: #d97706; }
+
+/* ===== Performance Page ===== */
+.perf-summary { margin: 16px; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.perf-score { text-align: center; }
+.perf-score .ps-num { font-size: 56px; font-weight: 700; color: #4f46e5; }
+.perf-score .ps-label { font-size: 13px; color: #9ca3af; }
+.perf-bar { height: 8px; background: #f3f4f6; border-radius: 4px; margin: 16px 0 8px; overflow: hidden; }
+.perf-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+.perf-dims { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px; }
+.perf-dim { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.perf-dim .pd-name { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+.perf-dim .pd-score { font-size: 20px; font-weight: 600; color: #1f2937; }
+
+/* ===== Document Page ===== */
+.doc-tabs { display: flex; background: #fff; padding: 0; border-bottom: 1px solid #e5e7eb; }
+.doc-item { display: flex; padding: 14px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; gap: 12px; align-items: center; }
+.doc-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.doc-word { background: #dbeafe; }
+.doc-excel { background: #d1fae5; }
+.doc-pdf { background: #fee2e2; }
+.doc-ppt { background: #fef3c7; }
+.doc-info { flex: 1; }
+.doc-name { font-size: 14px; color: #1f2937; margin-bottom: 2px; }
+.doc-meta { font-size: 11px; color: #9ca3af; }
+
+/* ===== Salary Page ===== */
+.salary-month { margin: 16px; background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.salary-total { font-size: 36px; font-weight: 700; color: #4f46e5; margin: 8px 0; }
+.salary-month-label { font-size: 13px; color: #9ca3af; }
+.salary-detail { margin: 0 16px 10px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.salary-row { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; }
+.salary-row:last-child { border-bottom: none; }
+.sr-label { font-size: 14px; color: #6b7280; }
+.sr-value { font-size: 14px; font-weight: 500; }
+.sr-value.add { color: #10b981; }
+.sr-value.sub { color: #ef4444; }
+.salary-total-row { display: flex; justify-content: space-between; padding: 14px 16px; background: #f9fafb; font-weight: 600; }
+
+/* ===== Asset Page ===== */
+.asset-tabs { display: flex; background: #fff; padding: 0; border-bottom: 1px solid #e5e7eb; }
+.asset-item { display: flex; padding: 14px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; gap: 12px; align-items: center; }
+.asset-icon { width: 44px; height: 44px; border-radius: 10px; background: #ede9fe; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.asset-info { flex: 1; }
+.asset-name { font-size: 14px; font-weight: 500; color: #1f2937; }
+.asset-meta { font-size: 12px; color: #9ca3af; }
+.asset-status { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.status-idle { background: #d1fae5; color: #059669; }
+.status-using { background: #dbeafe; color: #2563eb; }
+.status-repair { background: #fef3c7; color: #d97706; }
+
+/* ===== Project Page ===== */
+.project-card { margin: 12px 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.project-name { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 6px; }
+.project-desc { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
+.project-progress { margin-bottom: 8px; }
+.pp-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.pp-label { font-size: 12px; color: #9ca3af; }
+.pp-val { font-size: 12px; font-weight: 600; color: #4f46e5; }
+.pp-bar { height: 6px; background: #f3f4f6; border-radius: 3px; overflow: hidden; }
+.pp-fill { height: 100%; border-radius: 3px; background: #4f46e5; }
+.project-meta { display: flex; gap: 16px; margin-top: 10px; }
+.project-meta .pm-item { font-size: 11px; color: #9ca3af; display: flex; align-items: center; gap: 4px; }
+
+/* ===== Task Page ===== */
+.task-fab { position: absolute; right: 20px; bottom: 100px; width: 52px; height: 52px; background: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; box-shadow: 0 4px 12px rgba(79,70,229,0.4); z-index: 10; }
+.task-list { padding: 12px 16px; }
+.task-card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; gap: 12px; }
+.task-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; margin-top: 2px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.task-check.done { background: #10b981; border-color: #10b981; color: #fff; }
+.task-info { flex: 1; }
+.task-title { font-size: 14px; font-weight: 500; color: #1f2937; margin-bottom: 4px; }
+.task-title.done { text-decoration: line-through; color: #9ca3af; }
+.task-meta { display: flex; gap: 12px; }
+.task-tag { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 2px; }
+
+/* ===== Meeting Page ===== */
+.meeting-card { margin: 12px 16px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.meeting-time { background: #4f46e5; color: #fff; padding: 10px 16px; font-size: 13px; font-weight: 500; }
+.meeting-body { padding: 14px 16px; }
+.meeting-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+.meeting-info { font-size: 12px; color: #6b7280; display: flex; flex-direction: column; gap: 4px; }
+.meeting-info .mi-item { display: flex; align-items: center; gap: 6px; }
+.meeting-actions { display: flex; gap: 8px; margin-top: 12px; }
+.meeting-btn { flex: 1; padding: 8px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer; border: none; }
+.meeting-btn.join { background: #ede9fe; color: #4f46e5; font-weight: 500; }
+
+/* ===== Schedule Page ===== */
+.schedule-date { display: flex; justify-content: center; gap: 8px; padding: 16px; overflow-x: auto; }
+.sd-item { width: 44px; text-align: center; padding: 8px 0; border-radius: 12px; cursor: pointer; }
+.sd-item .sd-week { font-size: 11px; color: #9ca3af; }
+.sd-item .sd-day { font-size: 16px; font-weight: 600; color: #1f2937; margin-top: 4px; }
+.sd-item.active { background: #4f46e5; }
+.sd-item.active .sd-week, .sd-item.active .sd-day { color: #fff; }
+.sd-item.today { border: 1px solid #4f46e5; }
+.timeline { padding: 0 16px 100px; }
+.tl-item { display: flex; gap: 12px; margin-bottom: 16px; }
+.tl-time { width: 48px; font-size: 13px; color: #4f46e5; font-weight: 500; text-align: right; padding-top: 2px; }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; background: #4f46e5; margin-top: 6px; flex-shrink: 0; }
+.tl-content { flex: 1; background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.tl-title { font-size: 14px; font-weight: 500; color: #1f2937; margin-bottom: 4px; }
+.tl-desc { font-size: 12px; color: #6b7280; }
+
+/* ===== Handover Page ===== */
+.ho-card { margin: 12px 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.ho-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.ho-title { font-size: 15px; font-weight: 600; color: #1f2937; }
+.ho-status { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.ho-status.pending { background: #fef3c7; color: #d97706; }
+.ho-status.done { background: #d1fae5; color: #059669; }
+.ho-info { font-size: 13px; color: #6b7280; display: flex; flex-direction: column; gap: 6px; }
+.ho-info .hi-row { display: flex; gap: 8px; }
+.ho-info .hi-label { color: #9ca3af; min-width: 60px; }
+
+/* ===== Announce Page ===== */
+.announce-card { margin: 12px 16px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.announce-banner { height: 100px; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; }
+.announce-body { padding: 14px 16px; }
+.announce-title { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 6px; }
+.announce-desc { font-size: 13px; color: #6b7280; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.announce-meta { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+
+/* ===== Profile Page ===== */
+.profile-header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 24px 20px; color: #fff; text-align: center; }
+.profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.2); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; border: 3px solid rgba(255,255,255,0.4); }
+.profile-name { font-size: 18px; font-weight: 600; }
+.profile-pos { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+.profile-menu { margin: 16px; }
+.pm-group { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.pm-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f3f4f6; }
+.pm-item:last-child { border-bottom: none; }
+.pm-item .pm-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 12px; }
+.pm-item .pm-label { flex: 1; font-size: 15px; color: #1f2937; }
+.pm-item .pm-arrow { color: #d1d5db; font-size: 14px; }
+.pm-item .pm-val { font-size: 13px; color: #9ca3af; margin-right: 8px; }
+
+/* ===== Process Page ===== */
+.process-list { padding: 12px 16px; }
+.process-card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.process-name { font-size: 15px; font-weight: 500; color: #1f2937; margin-bottom: 8px; }
+.process-steps { display: flex; gap: 0; align-items: center; }
+.ps-step { display: flex; flex-direction: column; align-items: center; position: relative; }
+.ps-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 600; }
+.ps-dot.active { background: #4f46e5; }
+.ps-dot.done { background: #10b981; }
+.ps-dot.wait { background: #e5e7eb; color: #9ca3af; }
+.ps-label { font-size: 10px; color: #6b7280; margin-top: 4px; white-space: nowrap; }
+.ps-line { width: 30px; height: 2px; background: #e5e7eb; }
+.ps-line.done { background: #10b981; }
+
+/* Page nav selector */
+.page-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e7eb; z-index: 200; }
+.page-nav-inner { max-width: 375px; margin: 0 auto; display: flex; overflow-x: auto; padding: 8px; gap: 6px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.page-nav-inner::-webkit-scrollbar { height: 3px; }
+.page-nav-inner::-webkit-scrollbar-track { background: #f3f4f6; }
+.page-nav-inner::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+.pn-btn { padding: 6px 12px; border-radius: 16px; font-size: 11px; white-space: nowrap; cursor: pointer; border: 1px solid #e5e7eb; background: #fff; color: #374151; flex-shrink: 0; }
+.pn-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+@media (max-width: 768px) {
+  .phone-container { width: 100%; height: 100vh; border-radius: 0; border: none; }
+  body { padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>智能OA办公系统 - 移动端原型图</h1>
+  <p>共18个页面 | React Native 技术栈 | 点击下方按钮切换页面</p>
+</div>
+
+<div class="phone-container">
+  <div class="status-bar">
+    <div class="notch"></div>
+    <span>9:41</span>
+    <span>100% battery</span>
+  </div>
+
+  <!-- ===== Page: Login ===== -->
+  <div class="page active" id="page-login">
+    <div class="login-page">
+      <div class="login-logo"><span>OA</span></div>
+      <div class="login-title">智能OA办公</div>
+      <div class="login-subtitle">高效办公 智慧管理</div>
+      <div class="login-form">
+        <input class="login-input" placeholder="请输入手机号/工号" />
+        <input class="login-input" type="password" placeholder="请输入密码" />
+        <button class="login-btn">登 录</button>
+        <div class="login-options">
+          <span>忘记密码？</span>
+          <span>新用户注册</span>
+        </div>
+        <div class="login-sso">
+          <div>其他登录方式</div>
+          <div class="login-sso-btns">
+            <div class="login-sso-btn" style="font-size:14px;">企微</div>
+            <div class="login-sso-btn" style="font-size:14px;">钉钉</div>
+            <div class="login-sso-btn" style="font-size:14px;">微信</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Page: Workbench ===== -->
+  <div class="page" id="page-workbench">
+    <div class="wb-header">
+      <div class="wb-header-row">
+        <div>
+          <div class="wb-greeting">Hi, 思彤</div>
+          <div class="wb-sub">早上好，今天有3条待办事项</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="wb-icon" style="position:relative;">&#9993;<span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#ef4444;border-radius:50%;"></span></div>
+          <div class="wb-avatar">刘</div>
+        </div>
+      </div>
+    </div>
+    <div class="wb-search">&#128269; 搜索同事、审批、公告...</div>
+
+    <div class="section-title">常用功能</div>
+    <div class="quick-grid">
+      <div class="quick-item" onclick="showPage('approval')"><div class="qi-icon qi-purple">&#9993;</div><div class="qi-label">审批</div></div>
+      <div class="quick-item" onclick="showPage('attendance')"><div class="qi-icon qi-green">&#9201;</div><div class="qi-label">考勤</div></div>
+      <div class="quick-item" onclick="showPage('contacts')"><div class="qi-icon qi-blue">&#128101;</div><div class="qi-label">通讯录</div></div>
+      <div class="quick-item" onclick="showPage('task')"><div class="qi-icon qi-orange">&#9745;</div><div class="qi-label">任务</div></div>
+      <div class="quick-item" onclick="showPage('meeting')"><div class="qi-icon qi-pink">&#128197;</div><div class="qi-label">会议</div></div>
+      <div class="quick-item" onclick="showPage('schedule')"><div class="qi-icon qi-teal">&#128197;</div><div class="qi-label">日程</div></div>
+      <div class="quick-item" onclick="showPage('document')"><div class="qi-icon qi-amber">&#128196;</div><div class="qi-label">文档</div></div>
+      <div class="quick-item" onclick="showPage('salary')"><div class="qi-icon qi-red">&#128176;</div><div class="qi-label">薪资</div></div>
+    </div>
+
+    <div class="section-title">待办事项 <span class="more">全部 ></span></div>
+    <div class="todo-card blue"><div class="todo-title">请假审批 - 张三</div><div class="todo-desc">年假 | 3天 | 5月12日-5月14日</div><span class="todo-action">去处理</span></div>
+    <div class="todo-card"><div class="todo-title">报销审批 - 李四</div><div class="todo-desc">差旅报销 | ¥2,580.00</div><span class="todo-action">去处理</span></div>
+    <div class="todo-card green"><div class="todo-title">出差审批 - 王五</div><div class="todo-desc">上海 | 5天 | 5月15日-5月19日</div><span class="todo-action">去处理</span></div>
+
+    <div class="section-title">公告通知 <span class="more">全部 ></span></div>
+    <div class="notice-card"><span class="nc-tag announce">公告</span><div class="nc-info"><div class="nc-title">关于端午节放假安排的通知</div><div class="nc-meta">行政部 | 今天 08:30</div></div></div>
+    <div class="notice-card"><span class="nc-tag policy">制度</span><div class="nc-info"><div class="nc-title">新员工入职培训安排</div><div class="nc-meta">人事部 | 昨天 16:00</div></div></div>
+    <div style="height:100px;"></div>
+
+    <div class="tab-bar">
+      <div class="tab-item active"><span class="icon">&#9776;</span>工作台</div>
+      <div class="tab-item" onclick="showPage('message')"><span class="icon">&#9993;</span>消息</div>
+      <div class="tab-item" onclick="showPage('contacts')"><span class="icon">&#128101;</span>通讯录</div>
+      <div class="tab-item" onclick="showPage('profile')"><span class="icon">&#9786;</span>我的</div>
+    </div>
+  </div>
+
+  <!-- ===== Page: Approval ===== -->
+  <div class="page" id="page-approval">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">审批中心</span><span class="action">&#43;</span></div>
+    <div class="approval-tabs">
+      <div class="ap-tab active">待我审批(5)</div>
+      <div class="ap-tab">我已发起(12)</div>
+      <div class="ap-tab">我已审批(28)</div>
+    </div>
+    <div class="approval-list">
+      <div class="apl-card">
+        <div class="apl-top"><span class="apl-type type-leave">请假</span><span class="apl-time">2026-05-11 09:15</span></div>
+        <div class="apl-title">张三的请假申请</div>
+        <div class="apl-desc"><span>&#128197; 5/12 - 5/14</span><span>&#9200; 3天</span></div>
+        <div class="apl-footer"><div class="apl-user"><div class="apl-avatar">张</div><span class="apl-name">张三 · 技术部</span></div><div class="apl-actions"><span class="apl-btn reject">拒绝</span><span class="apl-btn agree">同意</span></div></div>
+      </div>
+      <div class="apl-card">
+        <div class="apl-top"><span class="apl-type type-expense">报销</span><span class="apl-time">2026-05-11 08:30</span></div>
+        <div class="apl-title">李四的差旅报销</div>
+        <div class="apl-desc"><span>&#128176; ¥2,580.00</span><span>北京-上海</span></div>
+        <div class="apl-footer"><div class="apl-user"><div class="apl-avatar">李</div><span class="apl-name">李四 · 市场部</span></div><div class="apl-actions"><span class="apl-btn reject">拒绝</span><span class="apl-btn agree">同意</span></div></div>
+      </div>
+      <div class="apl-card">
+        <div class="apl-top"><span class="apl-type type-travel">出差</span><span class="apl-time">2026-05-10 17:20</span></div>
+        <div class="apl-title">王五的出差申请</div>
+        <div class="apl-desc"><span>&#128205; 上海</span><span>&#9200; 5天</span></div>
+        <div class="apl-footer"><div class="apl-user"><div class="apl-avatar">王</div><span class="apl-name">王五 · 销售部</span></div><div class="apl-actions"><span class="apl-btn reject">拒绝</span><span class="apl-btn agree">同意</span></div></div>
+      </div>
+      <div class="apl-card">
+        <div class="apl-top"><span class="apl-type type-overtime">加班</span><span class="apl-time">2026-05-10 16:00</span></div>
+        <div class="apl-title">赵六的加班申请</div>
+        <div class="apl-desc"><span>&#128197; 5/10 19:00-22:00</span><span>&#9200; 3小时</span></div>
+        <div class="apl-footer"><div class="apl-user"><div class="apl-avatar">赵</div><span class="apl-name">赵六 · 技术部</span></div><div class="apl-actions"><span class="apl-btn reject">拒绝</span><span class="apl-btn agree">同意</span></div></div>
+      </div>
+      <div class="apl-card">
+        <div class="apl-top"><span class="apl-type type-purchase">采购</span><span class="apl-time">2026-05-10 14:30</span></div>
+        <div class="apl-title">孙七的采购申请</div>
+        <div class="apl-desc"><span>&#128187; MacBook Pro x2</span><span>&#128176; ¥29,999</span></div>
+        <div class="apl-footer"><div class="apl-user"><div class="apl-avatar">孙</div><span class="apl-name">孙七 · 行政部</span></div><div class="apl-actions"><span class="apl-btn reject">拒绝</span><span class="apl-btn agree">同意</span></div></div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Attendance ===== -->
+  <div class="page" id="page-attendance">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">考勤打卡</span><span class="action">&#9881;</span></div>
+    <div class="attend-header">
+      <div class="attend-date">2026年5月11日 星期一</div>
+      <div class="attend-clock">08:52</div>
+      <div style="font-size:13px;opacity:0.8;">工作时间 09:00 - 18:00</div>
+    </div>
+    <div class="attend-status">
+      <div class="attend-item"><div class="ai-label">上班打卡</div><div class="ai-time">08:52</div><div class="ai-status normal">正常</div></div>
+      <div class="attend-item"><div class="ai-label">下班打卡</div><div class="ai-time">--:--</div><div class="ai-status none">未打卡</div></div>
+      <div class="attend-item"><div class="ai-label">工作时长</div><div class="ai-time">--:--</div><div class="ai-status none">进行中</div></div>
+    </div>
+    <div class="attend-punch">
+      <button class="punch-btn in"><span class="pb-icon">&#10003;</span>已签到</button>
+      <button class="punch-btn out"><span class="pb-icon">&#9202;</span>下班打卡</button>
+    </div>
+    <div class="section-title">本月统计</div>
+    <div class="attend-stats">
+      <div class="stat-card"><div class="sc-val">18</div><div class="sc-label">出勤天数</div></div>
+      <div class="stat-card"><div class="sc-val">0</div><div class="sc-label">迟到次数</div></div>
+      <div class="stat-card"><div class="sc-val">0</div><div class="sc-label">早退次数</div></div>
+    </div>
+    <div class="section-title">打卡记录</div>
+    <div style="margin:0 16px;">
+      <div class="salary-row" style="background:#fff;border-radius:10px;"><span class="sr-label">05/11 周一</span><span class="sr-value">08:52 - --:--</span></div>
+      <div class="salary-row" style="background:#fff;border-radius:10px;"><span class="sr-label">05/10 周日</span><span class="sr-value" style="color:#9ca3af;">休息日</span></div>
+      <div class="salary-row" style="background:#fff;border-radius:10px;"><span class="sr-label">05/09 周六</span><span class="sr-value" style="color:#9ca3af;">休息日</span></div>
+      <div class="salary-row" style="background:#fff;border-radius:10px;"><span class="sr-label">05/08 周五</span><span class="sr-value">08:55 - 18:30</span></div>
+      <div class="salary-row" style="background:#fff;border-radius:10px;"><span class="sr-label">05/07 周四</span><span class="sr-value">09:02 - 18:15</span></div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Contacts ===== -->
+  <div class="page" id="page-contacts">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">通讯录</span><span class="action">&#43;</span></div>
+    <div class="contact-search">&#128269; 搜索姓名/部门/工号</div>
+    <div class="contact-dept">技术部 (8人)</div>
+    <div class="contact-item"><div class="contact-avatar ca-blue">陈</div><div class="contact-info"><div class="contact-name">陈经理</div><div class="contact-pos">技术总监 · 10001</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-item"><div class="contact-avatar ca-green">刘</div><div class="contact-info"><div class="contact-name">刘思彤</div><div class="contact-pos">高级开发工程师 · 10002</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-item"><div class="contact-avatar ca-orange">张</div><div class="contact-info"><div class="contact-name">张三</div><div class="contact-pos">前端开发工程师 · 10003</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-item"><div class="contact-avatar ca-pink">赵</div><div class="contact-info"><div class="contact-name">赵六</div><div class="contact-pos">后端开发工程师 · 10004</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-dept">市场部 (5人)</div>
+    <div class="contact-item"><div class="contact-avatar ca-teal">周</div><div class="contact-info"><div class="contact-name">周总监</div><div class="contact-pos">市场总监 · 20001</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-item"><div class="contact-avatar ca-orange">李</div><div class="contact-info"><div class="contact-name">李四</div><div class="contact-pos">市场专员 · 20002</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-dept">销售部 (6人)</div>
+    <div class="contact-item"><div class="contact-avatar ca-blue">吴</div><div class="contact-info"><div class="contact-name">吴经理</div><div class="contact-pos">销售经理 · 30001</div></div><div class="contact-call">&#128222;</div></div>
+    <div class="contact-item"><div class="contact-avatar ca-green">王</div><div class="contact-info"><div class="contact-name">王五</div><div class="contact-pos">销售代表 · 30002</div></div><div class="contact-call">&#128222;</div></div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Message ===== -->
+  <div class="page" id="page-message">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">消息</span><span class="action">&#9881;</span></div>
+    <div class="msg-tabs">
+      <div class="ap-tab active">全部</div>
+      <div class="ap-tab">审批</div>
+      <div class="ap-tab">通知</div>
+      <div class="ap-tab">系统</div>
+    </div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#fef3c7;">&#128172;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">审批通知</span><span class="msg-time">09:15</span></div><div class="msg-content">张三提交了请假申请，等待您审批</div></div></div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#dbeafe;">&#128227;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">公告通知</span><span class="msg-time">08:30</span></div><div class="msg-content">关于端午节放假安排的通知已发布</div></div></div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#d1fae5;">&#9989;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">审批结果</span><span class="msg-time">昨天</span></div><div class="msg-content">您提交的出差申请已通过审批</div></div></div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#ede9fe;">&#128276;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">任务提醒</span><span class="msg-time">昨天</span></div><div class="msg-content">「前端重构」任务将于明天到期，请及时处理</div></div></div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#fee2e2;">&#128197;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">会议提醒</span><span class="msg-time">05/09</span></div><div class="msg-content">「项目周会」将于明天14:00开始</div></div></div>
+    <div class="msg-item"><div class="msg-avatar" style="background:#fce7f3;">&#128176;</div><div class="msg-info"><div class="msg-header"><span class="msg-name">薪资通知</span><span class="msg-time">05/05</span></div><div class="msg-content">4月份工资已发放，请查收</div></div></div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Personnel ===== -->
+  <div class="page" id="page-personnel">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">人事管理</span><span class="action">&#43;</span></div>
+    <div class="contact-search">&#128269; 搜索员工姓名/工号</div>
+    <div style="display:flex;gap:8px;padding:8px 16px;overflow-x:auto;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;white-space:nowrap;">全部(42)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">在职(38)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">试用期(4)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">已离职</span>
+    </div>
+    <div class="person-list">
+      <div class="person-card"><div class="pc-avatar" style="background:#4f46e5;">陈</div><div class="pc-info"><div class="pc-name">陈经理</div><div class="pc-dept">技术部 · 技术总监</div><div class="pc-tags"><span class="pc-tag tag-active">在职</span></div></div></div>
+      <div class="person-card"><div class="pc-avatar" style="background:#10b981;">刘</div><div class="pc-info"><div class="pc-name">刘思彤</div><div class="pc-dept">技术部 · 高级开发工程师</div><div class="pc-tags"><span class="pc-tag tag-active">在职</span></div></div></div>
+      <div class="person-card"><div class="pc-avatar" style="background:#f59e0b;">钱</div><div class="pc-info"><div class="pc-name">钱八</div><div class="pc-dept">市场部 · 市场专员</div><div class="pc-tags"><span class="pc-tag tag-probation">试用期</span></div></div></div>
+      <div class="person-card"><div class="pc-avatar" style="background:#ec4899;">周</div><div class="pc-info"><div class="pc-name">周总监</div><div class="pc-dept">市场部 · 市场总监</div><div class="pc-tags"><span class="pc-tag tag-active">在职</span></div></div></div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Performance ===== -->
+  <div class="page" id="page-performance">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">绩效管理</span><span class="action">&#128196;</span></div>
+    <div style="display:flex;gap:8px;padding:8px 16px;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;">4月</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">3月</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">2月</span>
+    </div>
+    <div class="perf-summary">
+      <div class="perf-score"><div class="ps-num">92</div><div class="ps-label">综合绩效评分</div></div>
+      <div class="perf-bar"><div class="perf-bar-fill" style="width:92%;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;"><span>绩效等级: A (优秀)</span><span>部门排名: 2/8</span></div>
+    </div>
+    <div class="section-title">考核维度</div>
+    <div class="perf-dims">
+      <div class="perf-dim"><div class="pd-name">工作业绩</div><div class="pd-score">95</div></div>
+      <div class="perf-dim"><div class="pd-name">工作态度</div><div class="pd-score">90</div></div>
+      <div class="perf-dim"><div class="pd-name">团队协作</div><div class="pd-score">88</div></div>
+      <div class="perf-dim"><div class="pd-name">创新能力</div><div class="pd-score">92</div></div>
+    </div>
+    <div class="section-title">历史趋势</div>
+    <div style="margin:0 16px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+      <div style="display:flex;justify-content:space-around;text-align:center;">
+        <div><div style="font-size:20px;font-weight:600;color:#4f46e5;">92</div><div style="font-size:11px;color:#9ca3af;">4月</div></div>
+        <div><div style="font-size:20px;font-weight:600;color:#1f2937;">88</div><div style="font-size:11px;color:#9ca3af;">3月</div></div>
+        <div><div style="font-size:20px;font-weight:600;color:#1f2937;">90</div><div style="font-size:11px;color:#9ca3af;">2月</div></div>
+        <div><div style="font-size:20px;font-weight:600;color:#1f2937;">85</div><div style="font-size:11px;color:#9ca3af;">1月</div></div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Document ===== -->
+  <div class="page" id="page-document">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">文档管理</span><span class="action">&#43;</span></div>
+    <div class="contact-search">&#128269; 搜索文档名称</div>
+    <div class="doc-tabs" style="display:flex;">
+      <div class="ap-tab active" style="flex:1;text-align:center;">全部</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">我的文档</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">共享文档</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">收藏</div>
+    </div>
+    <div class="doc-item"><div class="doc-icon doc-word">W</div><div class="doc-info"><div class="doc-name">2026年Q2工作计划.docx</div><div class="doc-meta">刘思彤 · 2026-05-10 · 256KB</div></div></div>
+    <div class="doc-item"><div class="doc-icon doc-excel">X</div><div class="doc-info"><div class="doc-name">4月考勤统计表.xlsx</div><div class="doc-meta">人事部 · 2026-05-08 · 128KB</div></div></div>
+    <div class="doc-item"><div class="doc-icon doc-pdf">P</div><div class="doc-info"><div class="doc-name">员工手册2026版.pdf</div><div class="doc-meta">行政部 · 2026-04-15 · 2.1MB</div></div></div>
+    <div class="doc-item"><div class="doc-icon doc-ppt">S</div><div class="doc-info"><div class="doc-name">项目汇报-5月.pptx</div><div class="doc-meta">陈经理 · 2026-05-09 · 5.4MB</div></div></div>
+    <div class="doc-item"><div class="doc-icon doc-word">W</div><div class="doc-info"><div class="doc-name">技术方案-微服务架构.docx</div><div class="doc-meta">刘思彤 · 2026-05-06 · 1.2MB</div></div></div>
+    <div class="doc-item"><div class="doc-icon doc-excel">X</div><div class="doc-info"><div class="doc-name">项目预算表.xlsx</div><div class="doc-meta">财务部 · 2026-05-05 · 89KB</div></div></div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Salary ===== -->
+  <div class="page" id="page-salary">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">薪资管理</span><span class="action">&#128196;</span></div>
+    <div class="salary-month">
+      <div class="salary-month-label">2026年4月工资</div>
+      <div class="salary-total">¥ 18,500.00</div>
+      <span style="padding:2px 10px;background:rgba(255,255,255,0.15);border-radius:10px;font-size:12px;">已发放</span>
+    </div>
+    <div class="section-title">收入明细</div>
+    <div class="salary-detail">
+      <div class="salary-row"><span class="sr-label">基本工资</span><span class="sr-value add">+¥12,000.00</span></div>
+      <div class="salary-row"><span class="sr-label">岗位津贴</span><span class="sr-value add">+¥3,000.00</span></div>
+      <div class="salary-row"><span class="sr-label">绩效奖金</span><span class="sr-value add">+¥2,500.00</span></div>
+      <div class="salary-row"><span class="sr-label">餐补</span><span class="sr-value add">+¥600.00</span></div>
+      <div class="salary-row"><span class="sr-label">交通补贴</span><span class="sr-value add">+¥400.00</span></div>
+    </div>
+    <div class="section-title">扣除明细</div>
+    <div class="salary-detail">
+      <div class="salary-row"><span class="sr-label">社保(个人)</span><span class="sr-value sub">-¥1,200.00</span></div>
+      <div class="salary-row"><span class="sr-label">公积金(个人)</span><span class="sr-value sub">-¥800.00</span></div>
+      <div class="salary-row"><span class="sr-label">个人所得税</span><span class="sr-value sub">-¥520.00</span></div>
+    </div>
+    <div class="salary-detail" style="margin-top:12px;">
+      <div class="salary-total-row"><span style="font-size:15px;">实发工资</span><span style="font-size:18px;color:#4f46e5;">¥18,500.00</span></div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Asset ===== -->
+  <div class="page" id="page-asset">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">资产管理</span><span class="action">&#43;</span></div>
+    <div class="asset-tabs" style="display:flex;">
+      <div class="ap-tab active" style="flex:1;text-align:center;">我的资产</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">全部资产</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">领用申请</div>
+    </div>
+    <div class="asset-item"><div class="asset-icon">&#128187;</div><div class="asset-info"><div class="asset-name">MacBook Pro 14寸</div><div class="asset-meta">资产编号: A20260101 | 2026-01-15</div></div><span class="asset-status status-using">使用中</span></div>
+    <div class="asset-item"><div class="asset-icon">&#128241;</div><div class="asset-info"><div class="asset-name">iPhone 15 Pro</div><div class="asset-meta">资产编号: A20260102 | 2026-01-15</div></div><span class="asset-status status-using">使用中</span></div>
+    <div class="asset-item"><div class="asset-icon">&#128187;</div><div class="asset-info"><div class="asset-name">Dell 27寸显示器</div><div class="asset-meta">资产编号: A20260103 | 2026-02-01</div></div><span class="asset-status status-using">使用中</span></div>
+    <div class="asset-item"><div class="asset-icon">&#127911;</div><div class="asset-info"><div class="asset-name">ThinkPad X1 Carbon</div><div class="asset-meta">资产编号: A20250234 | 2025-06-01</div></div><span class="asset-status status-idle">空闲</span></div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Project ===== -->
+  <div class="page" id="page-project">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">项目管理</span><span class="action">&#43;</span></div>
+    <div style="display:flex;gap:8px;padding:8px 16px;overflow-x:auto;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;white-space:nowrap;">全部(6)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">进行中(3)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">已完成(2)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">已暂停</span>
+    </div>
+    <div class="project-card">
+      <div class="project-name">智能OA办公系统开发</div>
+      <div class="project-desc">基于React Native + Spring Boot 3的企业级OA系统</div>
+      <div class="project-progress"><div class="pp-header"><span class="pp-label">整体进度</span><span class="pp-val">65%</span></div><div class="pp-bar"><div class="pp-fill" style="width:65%;"></div></div></div>
+      <div class="project-meta"><span class="pm-item">&#128101; 技术部 · 8人</span><span class="pm-item">&#128197; 截止: 2026-07-30</span></div>
+    </div>
+    <div class="project-card">
+      <div class="project-name">官网2.0改版</div>
+      <div class="project-desc">公司官网全新设计改版，提升品牌形象</div>
+      <div class="project-progress"><div class="pp-header"><span class="pp-label">整体进度</span><span class="pp-val">40%</span></div><div class="pp-bar"><div class="pp-fill" style="width:40%;background:#f59e0b;"></div></div></div>
+      <div class="project-meta"><span class="pm-item">&#128101; 市场部 · 4人</span><span class="pm-item">&#128197; 截止: 2026-06-15</span></div>
+    </div>
+    <div class="project-card">
+      <div class="project-name">数据中台建设</div>
+      <div class="project-desc">构建统一数据平台，支撑业务决策分析</div>
+      <div class="project-progress"><div class="pp-header"><span class="pp-label">整体进度</span><span class="pp-val">80%</span></div><div class="pp-bar"><div class="pp-fill" style="width:80%;background:#10b981;"></div></div></div>
+      <div class="project-meta"><span class="pm-item">&#128101; 技术部 · 6人</span><span class="pm-item">&#128197; 截止: 2026-05-31</span></div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Task ===== -->
+  <div class="page" id="page-task">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">任务管理</span><span class="action">&#128269;</span></div>
+    <div style="display:flex;gap:8px;padding:8px 16px;overflow-x:auto;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;white-space:nowrap;">全部</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">今日</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">本周</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;white-space:nowrap;border:1px solid #e5e7eb;">逾期</span>
+    </div>
+    <div class="section-title">进行中 (4)</div>
+    <div class="task-list">
+      <div class="task-card"><div class="task-check done">&#10003;</div><div class="task-info"><div class="task-title done">设计数据库表结构</div><div class="task-meta"><span class="task-tag">&#128197; 今天</span><span class="task-tag">&#128101; 刘思彤</span></div></div></div>
+      <div class="task-card"><div class="task-check"></div><div class="task-info"><div class="task-title">实现用户登录接口</div><div class="task-meta"><span class="task-tag">&#128197; 明天</span><span class="task-tag">&#128101; 赵六</span></div></div></div>
+      <div class="task-card"><div class="task-check"></div><div class="task-info"><div class="task-title">编写API接口文档</div><div class="task-meta"><span class="task-tag">&#128197; 05/13</span><span class="task-tag">&#128101; 刘思彤</span></div></div></div>
+      <div class="task-card"><div class="task-check"></div><div class="task-info"><div class="task-title">前端首页UI开发</div><div class="task-meta"><span class="task-tag">&#128197; 05/14</span><span class="task-tag">&#128101; 张三</span></div></div></div>
+    </div>
+    <div class="section-title">已完成 (2)</div>
+    <div class="task-list">
+      <div class="task-card"><div class="task-check done">&#10003;</div><div class="task-info"><div class="task-title done">需求分析文档</div><div class="task-meta"><span class="task-tag">&#128197; 05/08</span><span class="task-tag">&#128101; 刘思彤</span></div></div></div>
+      <div class="task-card"><div class="task-check done">&#10003;</div><div class="task-info"><div class="task-title done">技术选型方案</div><div class="task-meta"><span class="task-tag">&#128197; 05/07</span><span class="task-tag">&#128101; 陈经理</span></div></div></div>
+    </div>
+    <div class="task-fab">+</div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Meeting ===== -->
+  <div class="page" id="page-meeting">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">会议管理</span><span class="action">&#43;</span></div>
+    <div style="display:flex;gap:8px;padding:8px 16px;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;">今日(3)</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">本周</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">历史</span>
+    </div>
+    <div class="meeting-card">
+      <div class="meeting-time">&#128197; 今天 10:00 - 11:30 | 会议室A</div>
+      <div class="meeting-body">
+        <div class="meeting-title">项目周例会</div>
+        <div class="meeting-info">
+          <div class="mi-item">&#128100; 组织者: 陈经理</div>
+          <div class="mi-item">&#128101; 参会人: 技术部全体(8人)</div>
+          <div class="mi-item">&#128221; 议题: 项目进度同步、技术方案评审</div>
+        </div>
+        <div class="meeting-actions"><button class="meeting-btn join">进入会议</button></div>
+      </div>
+    </div>
+    <div class="meeting-card">
+      <div class="meeting-time" style="background:#f59e0b;">&#128197; 今天 14:00 - 15:00 | 会议室B</div>
+      <div class="meeting-body">
+        <div class="meeting-title">需求评审会</div>
+        <div class="meeting-info">
+          <div class="mi-item">&#128100; 组织者: 刘思彤</div>
+          <div class="mi-item">&#128101; 参会人: 刘思彤、张三、赵六</div>
+          <div class="mi-item">&#128221; 议题: OA系统审批模块需求评审</div>
+        </div>
+        <div class="meeting-actions"><button class="meeting-btn join">进入会议</button></div>
+      </div>
+    </div>
+    <div class="meeting-card">
+      <div class="meeting-time" style="background:#10b981;">&#128197; 今天 16:00 - 16:30 | 线上</div>
+      <div class="meeting-body">
+        <div class="meeting-title">跨部门协调会</div>
+        <div class="meeting-info">
+          <div class="mi-item">&#128100; 组织者: 周总监</div>
+          <div class="mi-item">&#128101; 参会人: 技术部、市场部代表</div>
+          <div class="mi-item">&#128221; 议题: 官网改版需求对接</div>
+        </div>
+        <div class="meeting-actions"><button class="meeting-btn join">进入会议</button></div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Schedule ===== -->
+  <div class="page" id="page-schedule">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">日程总结</span><span class="action">&#43;</span></div>
+    <div class="schedule-date">
+      <div class="sd-item"><div class="sd-week">日</div><div class="sd-day">11</div></div>
+      <div class="sd-item today"><div class="sd-week">一</div><div class="sd-day">12</div></div>
+      <div class="sd-item"><div class="sd-week">二</div><div class="sd-day">13</div></div>
+      <div class="sd-item"><div class="sd-week">三</div><div class="sd-day">14</div></div>
+      <div class="sd-item"><div class="sd-week">四</div><div class="sd-day">15</div></div>
+      <div class="sd-item"><div class="sd-week">五</div><div class="sd-day">16</div></div>
+      <div class="sd-item"><div class="sd-week">六</div><div class="sd-day">17</div></div>
+    </div>
+    <div class="section-title">今日日程 <span class="more">3项安排</span></div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-time">09:00</div><div class="tl-dot"></div><div class="tl-content"><div class="tl-title">团队晨会</div><div class="tl-desc">15分钟站会，汇报昨日进展和今日计划</div></div></div>
+      <div class="tl-item"><div class="tl-time">10:00</div><div class="tl-dot" style="background:#f59e0b;"></div><div class="tl-content"><div class="tl-title">项目周例会</div><div class="tl-desc">会议室A | 项目进度同步</div></div></div>
+      <div class="tl-item"><div class="tl-time">14:00</div><div class="tl-dot" style="background:#10b981;"></div><div class="tl-content"><div class="tl-title">需求评审会</div><div class="tl-desc">会议室B | 审批模块需求评审</div></div></div>
+      <div class="tl-item"><div class="tl-time">16:00</div><div class="tl-dot" style="background:#ec4899;"></div><div class="tl-content"><div class="tl-title">代码评审</div><div class="tl-desc">与赵六一起评审用户模块代码</div></div></div>
+      <div class="tl-item"><div class="tl-time">17:30</div><div class="tl-dot" style="background:#8b5cf6;"></div><div class="tl-content"><div class="tl-title">日报总结</div><div class="tl-desc">整理今日工作成果，提交日报</div></div></div>
+    </div>
+  </div>
+
+  <!-- ===== Page: Process ===== -->
+  <div class="page" id="page-process">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">流程管理</span><span class="action">&#43;</span></div>
+    <div style="display:flex;gap:8px;padding:8px 16px;">
+      <span style="padding:4px 12px;background:#4f46e5;color:#fff;border-radius:14px;font-size:12px;">发起申请</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">我的流程</span>
+      <span style="padding:4px 12px;background:#fff;color:#374151;border-radius:14px;font-size:12px;border:1px solid #e5e7eb;">流程模板</span>
+    </div>
+    <div class="section-title">常用流程</div>
+    <div class="process-list">
+      <div class="process-card">
+        <div class="process-name">请假申请</div>
+        <div class="process-steps">
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">发起</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot active">2</div><div class="ps-label">主管</div></div><div class="ps-line"></div>
+          <div class="ps-step"><div class="ps-dot wait">3</div><div class="ps-label">总监</div></div><div class="ps-line"></div>
+          <div class="ps-step"><div class="ps-dot wait">4</div><div class="ps-label">HR</div></div>
+        </div>
+      </div>
+      <div class="process-card">
+        <div class="process-name">报销申请</div>
+        <div class="process-steps">
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">发起</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">主管</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot active">3</div><div class="ps-label">财务</div></div><div class="ps-line"></div>
+          <div class="ps-step"><div class="ps-dot wait">4</div><div class="ps-label">出纳</div></div>
+        </div>
+      </div>
+      <div class="process-card">
+        <div class="process-name">出差申请</div>
+        <div class="process-steps">
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">发起</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">主管</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot done">&#10003;</div><div class="ps-label">总监</div></div><div class="ps-line done"></div>
+          <div class="ps-step"><div class="ps-dot active">4</div><div class="ps-label">行政</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-title">流程模板</div>
+    <div class="process-list">
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 请假申请</div>
+      </div>
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 报销申请</div>
+      </div>
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 出差申请</div>
+      </div>
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 加班申请</div>
+      </div>
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 采购申请</div>
+      </div>
+      <div class="process-card" style="cursor:pointer;">
+        <div class="process-name" style="color:#4f46e5;">+ 用章申请</div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Handover ===== -->
+  <div class="page" id="page-handover">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">工作交接</span><span class="action">&#43;</span></div>
+    <div class="section-title">我发起的交接</div>
+    <div class="ho-card">
+      <div class="ho-header"><div class="ho-title">OA系统前端开发交接</div><span class="ho-status pending">交接中</span></div>
+      <div class="ho-info">
+        <div class="hi-row"><span class="hi-label">接收人:</span><span>张三</span></div>
+        <div class="hi-row"><span class="hi-label">发起时间:</span><span>2026-05-10</span></div>
+        <div class="hi-row"><span class="hi-label">完成度:</span><span>60%</span></div>
+      </div>
+    </div>
+    <div class="ho-card">
+      <div class="ho-header"><div class="ho-title">宠物医院项目后端交接</div><span class="ho-status done">已完成</span></div>
+      <div class="ho-info">
+        <div class="hi-row"><span class="hi-label">接收人:</span><span>赵六</span></div>
+        <div class="hi-row"><span class="hi-label">发起时间:</span><span>2026-04-28</span></div>
+        <div class="hi-row"><span class="hi-label">完成时间:</span><span>2026-05-05</span></div>
+      </div>
+    </div>
+    <div class="section-title">我接收的交接</div>
+    <div class="ho-card">
+      <div class="ho-header"><div class="ho-title">官网改版需求文档交接</div><span class="ho-status pending">待确认</span></div>
+      <div class="ho-info">
+        <div class="hi-row"><span class="hi-label">交接人:</span><span>周总监</span></div>
+        <div class="hi-row"><span class="hi-label">发起时间:</span><span>2026-05-11</span></div>
+        <div class="hi-row"><span class="hi-label">包含内容:</span><span>需求文档、原型图、设计稿</span></div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Announce ===== -->
+  <div class="page" id="page-announce">
+    <div class="nav-header"><span class="back">&#8592;</span><span class="title">公告通知</span><span class="action">&#43;</span></div>
+    <div class="doc-tabs" style="display:flex;">
+      <div class="ap-tab active" style="flex:1;text-align:center;">全部</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">公司公告</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">部门通知</div>
+      <div class="ap-tab" style="flex:1;text-align:center;">制度规范</div>
+    </div>
+    <div class="announce-card">
+      <div class="announce-banner">&#127881;</div>
+      <div class="announce-body">
+        <div class="announce-title">关于2026年端午节放假安排的通知</div>
+        <div class="announce-desc">根据国家法定假日安排，2026年端午节放假时间为5月31日至6月2日，共3天。请各部门提前做好工作安排...</div>
+        <div class="announce-meta"><span>行政部</span><span>2026-05-11</span><span>&#128065; 128次</span></div>
+      </div>
+    </div>
+    <div class="announce-card">
+      <div class="announce-banner" style="background:linear-gradient(135deg,#10b981,#059669);">&#128218;</div>
+      <div class="announce-body">
+        <div class="announce-title">新员工入职培训安排</div>
+        <div class="announce-desc">5月份新入职员工培训将于5月15日-5月17日进行，培训内容包括公司文化、规章制度、业务流程等...</div>
+        <div class="announce-meta"><span>人事部</span><span>2026-05-10</span><span>&#128065; 85次</span></div>
+      </div>
+    </div>
+    <div class="announce-card">
+      <div class="announce-banner" style="background:linear-gradient(135deg,#f59e0b,#d97706);">&#128736;</div>
+      <div class="announce-body">
+        <div class="announce-title">办公区域装修通知</div>
+        <div class="announce-desc">因3楼办公区域升级改造，5月20日-5月25日期间，技术部临时搬迁至5楼办公区...</div>
+        <div class="announce-meta"><span>行政部</span><span>2026-05-09</span><span>&#128065; 62次</span></div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ===== Page: Profile ===== -->
+  <div class="page" id="page-profile">
+    <div class="profile-header">
+      <div class="profile-avatar">刘</div>
+      <div class="profile-name">刘思彤</div>
+      <div class="profile-pos">技术部 · 高级开发工程师 · 工号10002</div>
+    </div>
+    <div class="profile-menu">
+      <div class="pm-group">
+        <div class="pm-item"><div class="pm-icon" style="background:#ede9fe;">&#128100;</div><span class="pm-label">个人信息</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#dbeafe;">&#128274;</div><span class="pm-label">账号安全</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#d1fae5;">&#128176;</div><span class="pm-label">薪资查询</span><span class="pm-val">4月已发</span><span class="pm-arrow">&#8250;</span></div>
+      </div>
+      <div class="pm-group">
+        <div class="pm-item"><div class="pm-icon" style="background:#fef3c7;">&#128203;</div><span class="pm-label">我的考勤</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#fce7f3;">&#128200;</div><span class="pm-label">我的绩效</span><span class="pm-val">A</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#ccfbf1;">&#128196;</div><span class="pm-label">我的文档</span><span class="pm-arrow">&#8250;</span></div>
+      </div>
+      <div class="pm-group">
+        <div class="pm-item"><div class="pm-icon" style="background:#fee2e2;">&#128187;</div><span class="pm-label">我的资产</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#e0e7ff;">&#128101;</div><span class="pm-label">我的团队</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#f3e8ff;">&#128221;</div><span class="pm-label">工作交接</span><span class="pm-arrow">&#8250;</span></div>
+      </div>
+      <div class="pm-group">
+        <div class="pm-item"><div class="pm-icon" style="background:#f1f5f9;">&#9881;</div><span class="pm-label">设置</span><span class="pm-arrow">&#8250;</span></div>
+        <div class="pm-item"><div class="pm-icon" style="background:#f1f5f9;">&#10067;</div><span class="pm-label">帮助与反馈</span><span class="pm-arrow">&#8250;</span></div>
+      </div>
+    </div>
+    <div style="padding:20px;"><button style="width:100%;height:44px;background:#fee2e2;color:#ef4444;border:none;border-radius:12px;font-size:15px;cursor:pointer;">退出登录</button></div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <div class="page-nav-inner" id="pageNav">
+    <button class="pn-btn active" onclick="showPage('login')">登录</button>
+    <button class="pn-btn" onclick="showPage('workbench')">工作台</button>
+    <button class="pn-btn" onclick="showPage('approval')">审批中心</button>
+    <button class="pn-btn" onclick="showPage('attendance')">考勤管理</button>
+    <button class="pn-btn" onclick="showPage('contacts')">通讯录</button>
+    <button class="pn-btn" onclick="showPage('message')">消息通知</button>
+    <button class="pn-btn" onclick="showPage('personnel')">人事管理</button>
+    <button class="pn-btn" onclick="showPage('performance')">绩效管理</button>
+    <button class="pn-btn" onclick="showPage('document')">文档管理</button>
+    <button class="pn-btn" onclick="showPage('salary')">薪资管理</button>
+    <button class="pn-btn" onclick="showPage('asset')">资产管理</button>
+    <button class="pn-btn" onclick="showPage('project')">项目管理</button>
+    <button class="pn-btn" onclick="showPage('task')">任务管理</button>
+    <button class="pn-btn" onclick="showPage('meeting')">会议管理</button>
+    <button class="pn-btn" onclick="showPage('schedule')">日程总结</button>
+    <button class="pn-btn" onclick="showPage('process')">流程管理</button>
+    <button class="pn-btn" onclick="showPage('handover')">工作交接</button>
+    <button class="pn-btn" onclick="showPage('announce')">公告通知</button>
+    <button class="pn-btn" onclick="showPage('profile')">个人中心</button>
+  </div>
+</div>
+
+<script>
+// ===== Mobile Toast =====
+function mToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'm-toast';
+  t.textContent = msg;
+  document.querySelector('.phone-container').appendChild(t);
+  setTimeout(()=>t.remove(), 2000);
+}
+
+// ===== Mobile Modal =====
+function mModal(title, bodyHtml, footerHtml) {
+  mModalClose();
+  const o = document.createElement('div');
+  o.className = 'm-modal-overlay';
+  o.id = 'mModalOverlay';
+  o.onclick = e => { if(e.target===o) mModalClose(); };
+  o.innerHTML = `<div class="m-modal"><div class="m-modal-header"><h3>${title}</h3><button class="m-modal-close" onclick="mModalClose()">&times;</button></div><div class="m-modal-body">${bodyHtml}</div>${footerHtml?'<div class="m-modal-footer">'+footerHtml+'</div>':''}</div>`;
+  document.querySelector('.phone-container').appendChild(o);
+}
+function mModalClose() {
+  const o = document.getElementById('mModalOverlay');
+  if(o) o.remove();
+}
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('.pn-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.pn-btn').forEach(b => {
+    if (b.getAttribute('onclick') === "showPage('" + pageId + "')") {
+      b.classList.add('active');
+      b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  });
+}
+
+// ===== Add click handlers after page load =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Login button
+  const loginBtn = document.querySelector('.login-btn');
+  if(loginBtn) {
+    loginBtn.onclick = () => {
+      loginBtn.textContent = '登录中...';
+      loginBtn.style.opacity = '0.7';
+      setTimeout(()=>{
+        loginBtn.textContent = '登 录';
+        loginBtn.style.opacity = '1';
+        showPage('workbench');
+        mToast('登录成功');
+      }, 600);
+    };
+  }
+
+  // Quick items on workbench - map icons to pages
+  const quickItems = document.querySelectorAll('.quick-item');
+  const pageMap = ['approval','attendance','schedule','contacts','message','task','document','performance'];
+  quickItems.forEach((item, i) => {
+    if(pageMap[i]) {
+      item.onclick = () => showPage(pageMap[i]);
+    }
+  });
+
+  // Punch buttons
+  const punchIn = document.querySelector('.punch-btn.in');
+  const punchOut = document.querySelector('.punch-btn.out');
+  if(punchIn) {
+    punchIn.onclick = () => {
+      if(punchIn.classList.contains('punched')) return;
+      punchIn.classList.add('punched');
+      punchIn.innerHTML = '<span class="pb-icon">&#10003;</span>已打卡';
+      // Update time
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const aiTime = document.querySelectorAll('.ai-time');
+      if(aiTime[0]) aiTime[0].textContent = timeStr;
+      if(document.querySelectorAll('.ai-status')[0]) { document.querySelectorAll('.ai-status')[0].textContent='正常'; document.querySelectorAll('.ai-status')[0].className='ai-status normal'; }
+      mToast('上班打卡成功 ' + timeStr);
+    };
+  }
+  if(punchOut) {
+    punchOut.onclick = () => {
+      if(punchOut.classList.contains('punched')) return;
+      punchOut.classList.add('punched');
+      punchOut.innerHTML = '<span class="pb-icon">&#10003;</span>已打卡';
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const aiTime = document.querySelectorAll('.ai-time');
+      if(aiTime[1]) aiTime[1].textContent = timeStr;
+      if(document.querySelectorAll('.ai-status')[1]) { document.querySelectorAll('.ai-status')[1].textContent='正常'; document.querySelectorAll('.ai-status')[1].className='ai-status normal'; }
+      mToast('下班打卡成功 ' + timeStr);
+    };
+  }
+
+  // Approval agree/reject buttons
+  document.querySelectorAll('.apl-btn.agree').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const card = btn.closest('.apl-card');
+      if(card) { card.style.opacity='0.5'; card.style.pointerEvents='none'; }
+      mToast('审批已通过');
+    };
+  });
+  document.querySelectorAll('.apl-btn.reject').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const card = btn.closest('.apl-card');
+      if(card) { card.style.opacity='0.5'; card.style.pointerEvents='none'; }
+      mModal('拒绝原因', '<textarea style="width:100%;height:80px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:13px;outline:none;resize:none;" placeholder="请输入拒绝原因..."></textarea>',
+        '<button class="m-btn m-btn-default" onclick="mModalClose()">取消</button><button class="m-btn m-btn-danger" onclick="mModalClose();mToast(\'已拒绝\')">确定拒绝</button>');
+    };
+  });
+
+  // Approval tabs
+  document.querySelectorAll('.ap-tab').forEach(tab => {
+    tab.onclick = () => {
+      tab.parentElement.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+    };
+  });
+
+  // Task checkmarks
+  document.querySelectorAll('.task-check').forEach(check => {
+    check.onclick = () => {
+      check.classList.toggle('done');
+      check.innerHTML = check.classList.contains('done') ? '&#10003;' : '';
+      const title = check.parentElement.querySelector('.task-title');
+      if(title) title.classList.toggle('done');
+      mToast(check.classList.contains('done') ? '任务已完成' : '任务已恢复');
+    };
+  });
+
+  // Task FAB
+  const taskFab = document.querySelector('.task-fab');
+  if(taskFab) {
+    taskFab.onclick = () => {
+      mModal('创建任务', `
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div><label style="font-size:13px;color:#374151;display:block;margin-bottom:4px;">任务名称</label><input style="width:100%;height:40px;border:1px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;outline:none;" placeholder="请输入任务名称" /></div>
+          <div><label style="font-size:13px;color:#374151;display:block;margin-bottom:4px;">截止日期</label><input type="date" style="width:100%;height:40px;border:1px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;outline:none;" value="2026-05-15" /></div>
+          <div><label style="font-size:13px;color:#374151;display:block;margin-bottom:4px;">任务描述</label><textarea style="width:100%;height:80px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:13px;outline:none;resize:none;" placeholder="请输入任务描述"></textarea></div>
+        </div>
+      `, '<button class="m-btn m-btn-default" onclick="mModalClose()">取消</button><button class="m-btn m-btn-primary" onclick="mModalClose();mToast(\'任务创建成功\')">创建</button>');
+    };
+  }
+
+  // Contact items click to show detail
+  document.querySelectorAll('.contact-item').forEach(item => {
+    item.onclick = () => {
+      const name = item.querySelector('.contact-name')?.textContent || '';
+      const pos = item.querySelector('.contact-pos')?.textContent || '';
+      mModal(name, `
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="width:64px;height:64px;border-radius:50%;background:#4f46e5;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;margin-bottom:8px;">${name[0]}</div>
+          <div style="font-size:18px;font-weight:600;color:#1f2937;">${name}</div>
+          <div style="font-size:13px;color:#9ca3af;">${pos}</div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button class="m-btn m-btn-primary" style="flex:none;width:120px;height:40px;border-radius:20px;font-size:13px;" onclick="mToast(\'拨号中...\')">&#128222; 拨打电话</button>
+          <button class="m-btn m-btn-default" style="flex:none;width:120px;height:40px;border-radius:20px;font-size:13px;" onclick="mToast(\'发送消息\')">&#9993; 发消息</button>
+        </div>
+      `, '');
+    };
+  });
+
+  // Message items click
+  document.querySelectorAll('.msg-item').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.onclick = () => {
+      const name = item.querySelector('.msg-name')?.textContent || '';
+      mToast('打开与 ' + name + ' 的对话');
+    };
+  });
+
+  // Document items click
+  document.querySelectorAll('.doc-item').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.onclick = () => {
+      const name = item.querySelector('.doc-name')?.textContent || '';
+      mToast('打开文档: ' + name);
+    };
+  });
+
+  // Asset items click
+  document.querySelectorAll('.asset-item').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.onclick = () => {
+      const name = item.querySelector('.asset-name')?.textContent || '';
+      mModal('资产详情', `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:13px;">资产名称</span><span style="font-size:13px;">${name}</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:13px;">资产编号</span><span style="font-size:13px;">A20260101</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:13px;">使用人</span><span style="font-size:13px;">刘思彤</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:13px;">购入日期</span><span style="font-size:13px;">2026-01-15</span></div>
+        </div>
+      `, '<button class="m-btn m-btn-default" onclick="mModalClose()">关闭</button>');
+    };
+  });
+
+  // Project cards click
+  document.querySelectorAll('.project-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.onclick = () => {
+      const name = card.querySelector('.project-name')?.textContent || '';
+      mModal(name, `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><span style="color:#6b7280;font-size:13px;">项目负责人：</span><span style="font-size:13px;">陈经理</span></div>
+          <div><span style="color:#6b7280;font-size:13px;">参与部门：</span><span style="font-size:13px;">技术部</span></div>
+          <div><span style="color:#6b7280;font-size:13px;">起止日期：</span><span style="font-size:13px;">2026-04-01 ~ 2026-07-30</span></div>
+          <div><span style="color:#6b7280;font-size:13px;">项目描述：</span><span style="font-size:13px;">开发智能OA办公系统，包含移动端、管理后台和接口服务。</span></div>
+        </div>
+      `, '<button class="m-btn m-btn-default" onclick="mModalClose()">关闭</button>');
+    };
+  });
+
+  // Meeting cards click
+  document.querySelectorAll('.meeting-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.onclick = () => {
+      const title = card.querySelector('.meeting-title')?.textContent || '';
+      mModal(title, `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><span style="color:#6b7280;font-size:13px;">会议室：</span><span style="font-size:13px;">会议室A</span></div>
+          <div><span style="color:#6b7280;font-size:13px;">组织者：</span><span style="font-size:13px;">陈经理</span></div>
+          <div><span style="color:#6b7280;font-size:13px;">参会人：</span><span style="font-size:13px;">8人</span></div>
+        </div>
+      `, '<button class="m-btn m-btn-default" onclick="mModalClose()">关闭</button>');
+    };
+  });
+
+  // Profile menu items
+  document.querySelectorAll('.pm-item').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.onclick = () => {
+      const label = item.querySelector('.pm-label')?.textContent || '';
+      mToast(label);
+    };
+  });
+
+  // Person cards click
+  document.querySelectorAll('.person-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.onclick = () => {
+      const name = card.querySelector('.pc-name')?.textContent || '';
+      const dept = card.querySelector('.pc-dept')?.textContent || '';
+      mModal(name, `
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="width:64px;height:64px;border-radius:50%;background:#4f46e5;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;margin-bottom:8px;">${name[0]}</div>
+          <div style="font-size:18px;font-weight:600;">${name}</div>
+          <div style="font-size:13px;color:#9ca3af;">${dept}</div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button class="m-btn m-btn-primary" style="flex:none;width:100px;height:40px;border-radius:20px;font-size:13px;" onclick="mToast(\'拨号中...\')">&#128222;</button>
+          <button class="m-btn m-btn-default" style="flex:none;width:100px;height:40px;border-radius:20px;font-size:13px;" onclick="mToast(\'发消息\')">&#9993;</button>
+        </div>
+      `, '');
+    };
+  });
+
+  // Todo card actions
+  document.querySelectorAll('.todo-action').forEach(btn => {
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => showPage('approval');
+  });
+
+  // Notice cards
+  document.querySelectorAll('.notice-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.onclick = () => {
+      const title = card.querySelector('.nc-title')?.textContent || '';
+      mModal(title, '<div style="font-size:14px;color:#374151;line-height:1.8;">根据国务院办公厅通知，端午节放假安排：5月30日至6月1日放假，共3天。请各部门做好工作安排。</div>', '<button class="m-btn m-btn-default" onclick="mModalClose()">关闭</button>');
+    };
+  });
+
+  // Logout button
+  const logoutBtn = document.querySelector('.page-profile button');
+  if(logoutBtn) {
+    logoutBtn.onclick = () => {
+      mModal('退出登录', '<div style="text-align:center;padding:20px 0;"><div style="font-size:40px;margin-bottom:12px;">&#128682;</div><p style="font-size:15px;">确定退出登录吗？</p></div>',
+        '<button class="m-btn m-btn-default" onclick="mModalClose()">取消</button><button class="m-btn m-btn-danger" style="background:#ef4444;color:#fff;" onclick="mModalClose();showPage(\'login\');mToast(\'已退出\')">确定</button>');
+    };
+  }
+});
+</script>
+</body>
+</html>

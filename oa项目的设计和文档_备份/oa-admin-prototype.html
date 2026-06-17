@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能OA办公系统 - 管理后台原型图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #1f2937; }
+
+/* ===== Global Interactions ===== */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 12px 20px; border-radius: 8px; font-size: 13px; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: toastIn 0.3s ease; display: flex; align-items: center; gap: 8px; }
+.toast.success { background: #10b981; }
+.toast.error { background: #ef4444; }
+.toast.info { background: #3b82f6; }
+.toast.warning { background: #f59e0b; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+.modal { background: #fff; border-radius: 12px; width: 520px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header { padding: 20px 24px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; border: none; background: none; font-size: 18px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280; }
+.modal-close:hover { background: #f3f4f6; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; }
+
+.confirm-modal .modal { width: 400px; }
+.confirm-content { text-align: center; padding: 20px 0; }
+.confirm-icon { font-size: 48px; margin-bottom: 12px; }
+.confirm-text { font-size: 15px; color: #374151; margin-bottom: 4px; }
+.confirm-sub { font-size: 13px; color: #9ca3af; }
+
+.dropdown-menu { position: absolute; top: 100%; right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #e5e7eb; padding: 4px 0; min-width: 160px; z-index: 100; animation: dropIn 0.15s ease; }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.dropdown-item { padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.dropdown-item:hover { background: #f3f4f6; }
+
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; }
+.tab { padding: 10px 20px; font-size: 14px; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.tab:hover { color: #374151; }
+.tab.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 500; }
+.tab .tab-badge { background: #ef4444; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
+
+/* ===== Bottom Tab Bar ===== */
+.bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 44px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; align-items: center; z-index: 200; overflow: hidden; }
+.bottom-tab-bar .scroll-hint { width: 28px; height: 28px; background: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #6b7280; flex-shrink: 0; margin: 0 4px; transition: all 0.15s; }
+.bottom-tab-bar .scroll-hint:hover { background: #e5e7eb; color: #374151; }
+.bottom-tab-bar .scroll-hint:active { transform: scale(0.92); }
+.bottom-tab-bar .tab-scroll { flex: 1; overflow-x: auto; display: flex; gap: 6px; padding: 0 8px; scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; }
+.bottom-tab-bar .tab-scroll::-webkit-scrollbar { display: none; }
+.bt-tab { padding: 5px 14px; border-radius: 16px; font-size: 12px; cursor: pointer; white-space: nowrap; border: none; background: #f3f4f6; color: #6b7280; transition: all 0.15s; flex-shrink: 0; }
+.bt-tab:hover { background: #e5e7eb; color: #374151; }
+.bt-tab.active { background: #4f46e5; color: #fff; }
+.bt-tab.active:hover { background: #4f46e5; }
+
+/* ===== Layout ===== */
+.layout { display: flex; height: calc(100vh - 44px); width: 100%; }
+.sidebar { width: 180px; background: #1a1a2e; color: #fff; overflow-y: auto; flex-shrink: 0; transition: width 0.3s; }
+.sidebar.collapsed { width: 48px; }
+.sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub, .sidebar.collapsed .menu-group, .sidebar.collapsed .menu-item span:last-child, .sidebar.collapsed .mi-badge, .sidebar.collapsed .mi-arrow { display: none; }
+.sidebar.collapsed .menu-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .mi-icon { width: auto; }
+.sidebar::-webkit-scrollbar { width: 0; }
+.sidebar-logo { padding: 14px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 8px; }
+.sidebar-logo .logo-icon { width: 30px; height: 30px; background: #4f46e5; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.sidebar-logo .logo-text { font-size: 13px; font-weight: 600; }
+.sidebar-logo .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+.sidebar-menu { padding: 4px 0; }
+.menu-group { padding: 6px 12px 3px; font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.menu-group:hover { color: rgba(255,255,255,0.5); }
+.mi-arrow { font-size: 9px; transition: transform 0.2s; }
+.mi-arrow.open { transform: rotate(90deg); }
+.menu-group-items { overflow: hidden; transition: max-height 0.3s ease; }
+.menu-group-items.collapsed { max-height: 0 !important; }
+.menu-item { display: flex; align-items: center; padding: 8px 12px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.7); gap: 8px; transition: all 0.2s; }
+.menu-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.menu-item.active { background: rgba(79,70,229,0.2); color: #fff; border-right: 3px solid #4f46e5; }
+.menu-item .mi-icon { width: 18px; text-align: center; font-size: 14px; }
+.menu-item .mi-badge { margin-left: auto; background: #ef4444; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 10px; }
+.sidebar-toggle { position: absolute; bottom: 12px; right: -10px; width: 20px; height: 20px; background: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: #fff; border: 2px solid #f0f2f5; z-index: 10; }
+.sidebar-wrapper { position: relative; }
+
+.content { flex: 1; min-width: 0; overflow-y: auto; background: #f5f7fa; }
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+.page { display: none; }
+.page.active { display: block; animation: pageIn 0.2s ease; }
+@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== Login Page ===== */
+.login-page { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a2e 0%, #4f46e5 100%); }
+.login-box { width: 400px; background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s ease; }
+.login-box .lb-logo { text-align: center; margin-bottom: 32px; }
+.login-box .lb-logo .lb-icon { width: 56px; height: 56px; background: #4f46e5; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+.login-box .lb-logo h2 { font-size: 22px; color: #1f2937; }
+.login-box .lb-logo p { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+.lb-field { margin-bottom: 20px; }
+.lb-field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+.lb-field input { width: 100%; height: 42px; border: 1px solid #d1d5db; border-radius: 8px; padding: 0 12px; font-size: 14px; outline: none; transition: all 0.2s; }
+.lb-field input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+.lb-field input.error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.lb-field .field-error { font-size: 12px; color: #ef4444; margin-top: 4px; display: none; }
+.lb-field .field-error.show { display: block; }
+.lb-options { display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 13px; }
+.lb-options label { color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.lb-options a { color: #4f46e5; text-decoration: none; }
+.lb-btn { width: 100%; height: 42px; background: #4f46e5; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.lb-btn:hover { background: #4338ca; }
+.lb-btn:active { transform: scale(0.98); }
+.lb-btn.loading { opacity: 0.7; pointer-events: none; }
+.lb-sso { margin-top: 24px; text-align: center; padding-top: 24px; border-top: 1px solid #f3f4f6; }
+.lb-sso p { font-size: 13px; color: #9ca3af; margin-bottom: 12px; }
+.lb-sso-btns { display: flex; gap: 12px; justify-content: center; }
+.lb-sso-btn { padding: 8px 20px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; color: #374151; cursor: pointer; background: #fff; transition: all 0.2s; }
+.lb-sso-btn:hover { border-color: #4f46e5; color: #4f46e5; }
+
+/* ===== Top Bar ===== */
+.topbar { height: 56px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+.topbar .breadcrumb { font-size: 14px; color: #6b7280; }
+.topbar .breadcrumb span { color: #1f2937; font-weight: 500; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.topbar-right .tb-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; position: relative; }
+.topbar-right .tb-icon:hover { background: #f3f4f6; }
+.tb-badge { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; }
+.tb-user { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 8px; border-radius: 8px; position: relative; }
+.tb-user:hover { background: #f3f4f6; }
+.tb-avatar { width: 32px; height: 32px; border-radius: 50%; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+
+/* ===== Dashboard ===== */
+.dashboard { padding: 24px; }
+.stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.sc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.sc-label { font-size: 13px; color: #6b7280; }
+.sc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.sc-value { font-size: 28px; font-weight: 700; color: #1f2937; }
+.sc-change { font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.sc-change.up { color: #10b981; }
+.sc-change.down { color: #ef4444; }
+
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+.dash-card { background: #fff; border-radius: 12px; padding: 20px; }
+.dc-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.dc-title .dc-more { font-size: 12px; color: #4f46e5; font-weight: 400; cursor: pointer; }
+.dc-title .dc-more:hover { text-decoration: underline; }
+
+.todo-list {}
+.todo-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.15s; }
+.todo-item:last-child { border-bottom: none; }
+.todo-item:hover { background: #f9fafb; margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 6px; }
+.todo-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
+.todo-text { flex: 1; font-size: 13px; color: #374151; }
+.todo-time { font-size: 11px; color: #9ca3af; }
+
+.activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+.activity-item:last-child { border-bottom: none; }
+.act-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; font-weight: 600; flex-shrink: 0; }
+.act-info { flex: 1; }
+.act-text { font-size: 13px; color: #374151; }
+.act-text strong { color: #1f2937; }
+.act-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+/* ===== Table Page ===== */
+.table-page { padding: 24px; }
+.tp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.tp-title { font-size: 18px; font-weight: 600; }
+.tp-actions { display: flex; gap: 8px; }
+.btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151; display: flex; align-items: center; gap: 4px; transition: all 0.15s; }
+.btn:hover { border-color: #4f46e5; color: #4f46e5; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.btn-primary:hover { background: #4338ca; color: #fff; }
+.btn-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+.btn-danger:hover { background: #dc2626; color: #fff; }
+.btn-success { background: #10b981; color: #fff; border-color: #10b981; }
+.btn-success:hover { background: #059669; color: #fff; }
+
+.filter-bar { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.filter-item { display: flex; align-items: center; gap: 6px; }
+.filter-item label { font-size: 13px; color: #6b7280; white-space: nowrap; }
+.filter-item select, .filter-item input { height: 32px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 10px; font-size: 13px; outline: none; transition: all 0.2s; }
+.filter-item select:focus, .filter-item input:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+
+.data-table { background: #fff; border-radius: 12px; overflow: hidden; }
+.data-table table { width: 100%; border-collapse: collapse; }
+.data-table th { background: #f9fafb; padding: 12px 16px; font-size: 13px; font-weight: 600; color: #6b7280; text-align: left; border-bottom: 1px solid #e5e7eb; cursor: pointer; user-select: none; white-space: nowrap; }
+.data-table th:hover { background: #f3f4f6; }
+.data-table th .sort-icon { font-size: 10px; margin-left: 2px; color: #d1d5db; }
+.data-table th .sort-icon.asc, .data-table th .sort-icon.desc { color: #4f46e5; }
+.data-table td { padding: 12px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+.data-table tr { transition: background 0.15s; }
+.data-table tbody tr:hover td { background: #f9fafb; }
+.data-table tbody tr.selected td { background: #ede9fe; }
+.data-table .checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #4f46e5; }
+.status-tag { padding: 2px 10px; border-radius: 10px; font-size: 12px; display: inline-block; }
+.tag-active { background: #d1fae5; color: #059669; }
+.tag-inactive { background: #f3f4f6; color: #6b7280; }
+.tag-pending { background: #fef3c7; color: #d97706; }
+.tag-approved { background: #dbeafe; color: #2563eb; }
+.tag-rejected { background: #fee2e2; color: #dc2626; }
+.tag-using { background: #dbeafe; color: #2563eb; }
+.tag-idle { background: #d1fae5; color: #059669; }
+.tag-repair { background: #fef3c7; color: #d97706; }
+.action-link { color: #4f46e5; cursor: pointer; font-size: 13px; margin-right: 8px; transition: color 0.15s; }
+.action-link:hover { text-decoration: underline; }
+.action-link.danger { color: #ef4444; }
+
+.pagination { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; font-size: 13px; color: #6b7280; }
+.page-btns { display: flex; gap: 4px; }
+.page-btn { width: 32px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; background: #fff; transition: all 0.15s; }
+.page-btn:hover { border-color: #4f46e5; color: #4f46e5; }
+.page-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.page-btn:active { transform: scale(0.95); }
+
+/* ===== Form Styles ===== */
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.form-grid .full-width { grid-column: 1 / -1; }
+.form-item {}
+.form-item label { display: block; font-size: 13px; color: #374151; margin-bottom: 6px; font-weight: 500; }
+.form-item label .required { color: #ef4444; margin-left: 2px; }
+.form-item input, .form-item select, .form-item textarea { width: 100%; height: 36px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 12px; font-size: 13px; outline: none; transition: all 0.2s; }
+.form-item input:focus, .form-item select:focus, .form-item textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+.form-item textarea { height: 80px; padding: 8px 12px; resize: vertical; }
+.form-actions { display: flex; gap: 8px; margin-top: 24px; justify-content: flex-end; }
+
+/* ===== Detail Page ===== */
+.detail-card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+.detail-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+.form-item .fi-value { font-size: 14px; color: #1f2937; }
+
+/* ===== Settings Page ===== */
+.settings-page { padding: 24px; }
+.settings-card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+.settings-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+.setting-item:last-child { border-bottom: none; }
+.setting-label { font-size: 14px; color: #374151; }
+.setting-desc { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+.switch { width: 44px; height: 24px; background: #d1d5db; border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; }
+.switch.on { background: #4f46e5; }
+.switch::after { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+.switch.on::after { left: 22px; }
+
+/* ===== Responsive ===== */
+.batch-bar { background: #4f46e5; color: #fff; padding: 10px 20px; border-radius: 8px; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; font-size: 13px; }
+.batch-bar.show { display: flex; }
+.batch-actions { display: flex; gap: 8px; }
+.batch-actions .btn { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3); }
+.batch-actions .btn:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== Login Page ===== -->
+<div class="page active" id="page-admin-login">
+  <div class="login-page">
+    <div class="login-box">
+      <div class="lb-logo">
+        <div class="lb-icon">OA</div>
+        <h2>智能OA办公系统</h2>
+        <p>管理后台登录</p>
+      </div>
+      <div class="lb-field"><label>账号</label><input id="loginUser" placeholder="请输入管理员账号" value="admin" /><div class="field-error" id="loginUserErr">请输入账号</div></div>
+      <div class="lb-field"><label>密码</label><input id="loginPwd" type="password" placeholder="请输入密码" value="123456" /><div class="field-error" id="loginPwdErr">请输入密码</div></div>
+      <div class="lb-field" style="display:flex;gap:12px;align-items:center;">
+        <input id="loginCaptcha" placeholder="验证码" style="flex:1;" />
+        <div id="captchaImg" style="width:100px;height:42px;background:#4f46e5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;letter-spacing:4px;cursor:pointer;" title="点击刷新验证码">A8K2</div>
+      </div>
+      <div class="lb-field" id="loginCaptchaErr"><div class="field-error">请输入验证码</div></div>
+      <div class="lb-options"><label><input type="checkbox" checked /> 记住密码</label><a href="javascript:void(0)" onclick="showToast('请联系系统管理员重置密码','info')">忘记密码?</a></div>
+      <button class="lb-btn" id="loginBtn" onclick="handleLogin()">登 录</button>
+      <div class="lb-sso">
+        <p style="color:#4f46e5;cursor:pointer;font-weight:500;margin-bottom:12px;" onclick="showAdminPage('dashboard')">&#9654; 直接进入系统查看所有页面</p>
+        <p>其他登录方式</p>
+        <div class="lb-sso-btns">
+          <div class="lb-sso-btn" onclick="showToast('企业微信登录功能开发中','info')">企业微信</div>
+          <div class="lb-sso-btn" onclick="showToast('钉钉登录功能开发中','info')">钉钉</div>
+          <div class="lb-sso-btn" onclick="showToast('SSO单点登录功能开发中','info')">SSO单点</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Admin Layout ===== -->
+<div id="adminLayout" style="display:none;">
+  <div class="layout">
+    <div class="sidebar-wrapper">
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">OA</div>
+          <div><div class="logo-text">智能OA</div><div class="logo-sub">管理后台 v1.0</div></div>
+        </div>
+        <div class="sidebar-menu" id="sidebarMenu"></div>
+      </div>
+      <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">&#9664;</div>
+    </div>
+
+    <div class="content">
+      <!-- ===== Dashboard ===== -->
+      <div class="page active" id="page-admin-dashboard">
+        <div class="topbar"><div class="breadcrumb">首页 / <span>仪表盘</span></div><div class="topbar-right"><div class="tb-icon" onclick="showToast('搜索功能','info')">&#128269;</div><div class="tb-icon" onclick="showToast('您有3条未读消息','info')">&#128276;<span class="tb-badge"></span></div><div class="tb-user" id="tbUser" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span><div class="dropdown-menu" id="userDropdown" style="display:none;"><div class="dropdown-item" onclick="showToast('个人中心','info')">&#128100; 个人中心</div><div class="dropdown-item" onclick="showToast('修改密码','info')">&#128274; 修改密码</div><div class="dropdown-item" onclick="showConfirm('确定退出登录吗？',()=>{showAdminPage('admin-login');showToast('已退出登录','info');})">&#128682; 退出登录</div></div></div></div></div>
+        <div class="dashboard">
+          <div class="stat-cards">
+            <div class="stat-card" onclick="showAdminPage('personnel')"><div class="sc-top"><span class="sc-label">员工总数</span><div class="sc-icon" style="background:#ede9fe;">&#128101;</div></div><div class="sc-value">42</div><div class="sc-change up">&#9650; 3 本月新增</div></div>
+            <div class="stat-card" onclick="showAdminPage('attendance')"><div class="sc-top"><span class="sc-label">今日出勤</span><div class="sc-icon" style="background:#d1fae5;">&#9201;</div></div><div class="sc-value">38</div><div class="sc-change up">&#9650; 95.2% 出勤率</div></div>
+            <div class="stat-card" onclick="showAdminPage('approval')"><div class="sc-top"><span class="sc-label">待审批</span><div class="sc-icon" style="background:#fef3c7;">&#9993;</div></div><div class="sc-value">5</div><div class="sc-change down">&#9660; 2 较昨日</div></div>
+            <div class="stat-card" onclick="showAdminPage('project')"><div class="sc-top"><span class="sc-label">进行中项目</span><div class="sc-icon" style="background:#dbeafe;">&#128188;</div></div><div class="sc-value">6</div><div class="sc-change up">&#9650; 1 本周新增</div></div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="dash-card">
+              <div class="dc-title">近7天考勤趋势 <span class="dc-more" onclick="showAdminPage('attendance')">查看详情 ></span></div>
+              <div style="display:flex;flex-direction:column;gap:12px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:12px;color:#9ca3af;">周一</span><div style="flex:1;height:24px;background:#f3f4f6;border-radius:4px;overflow:hidden;"><div style="width:95%;height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;transition:width 0.5s;"></div></div><span style="font-size:12px;font-weight:600;">40/42</span></div>
+                <div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:12px;color:#9ca3af;">周二</span><div style="flex:1;height:24px;background:#f3f4f6;border-radius:4px;overflow:hidden;"><div style="width:90%;height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;"></div></div><span style="font-size:12px;font-weight:600;">38/42</span></div>
+                <div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:12px;color:#9ca3af;">周三</span><div style="flex:1;height:24px;background:#f3f4f6;border-radius:4px;overflow:hidden;"><div style="width:100%;height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;"></div></div><span style="font-size:12px;font-weight:600;">42/42</span></div>
+                <div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:12px;color:#9ca3af;">周四</span><div style="flex:1;height:24px;background:#f3f4f6;border-radius:4px;overflow:hidden;"><div style="width:92%;height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;"></div></div><span style="font-size:12px;font-weight:600;">39/42</span></div>
+                <div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:12px;color:#9ca3af;">周五</span><div style="flex:1;height:24px;background:#f3f4f6;border-radius:4px;overflow:hidden;"><div style="width:95%;height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;"></div></div><span style="font-size:12px;font-weight:600;">40/42</span></div>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dc-title">待办事项 <span class="dc-more">全部 ></span></div>
+              <div class="todo-list">
+                <div class="todo-item" onclick="showAdminPage('approval')"><div class="todo-dot" style="background:#ef4444;"></div><span class="todo-text">张三的请假申请待审批</span><span class="todo-time">10分钟前</span></div>
+                <div class="todo-item" onclick="showAdminPage('approval')"><div class="todo-dot" style="background:#f59e0b;"></div><span class="todo-text">李四的报销单待审核</span><span class="todo-time">30分钟前</span></div>
+                <div class="todo-item" onclick="showAdminPage('personnel')"><div class="todo-dot" style="background:#3b82f6;"></div><span class="todo-text">新员工入职材料待确认</span><span class="todo-time">1小时前</span></div>
+                <div class="todo-item" onclick="showAdminPage('performance')"><div class="todo-dot" style="background:#8b5cf6;"></div><span class="todo-text">月度绩效考核待启动</span><span class="todo-time">2小时前</span></div>
+                <div class="todo-item" onclick="showAdminPage('asset')"><div class="todo-dot" style="background:#10b981;"></div><span class="todo-text">资产采购申请待处理</span><span class="todo-time">3小时前</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="dash-card">
+              <div class="dc-title">项目进度概览 <span class="dc-more" onclick="showAdminPage('project')">全部 ></span></div>
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <tr style="border-bottom:1px solid #f3f4f6;"><th style="padding:10px 0;text-align:left;color:#6b7280;font-weight:500;">项目名称</th><th style="padding:10px 0;text-align:left;color:#6b7280;font-weight:500;">负责人</th><th style="padding:10px 0;text-align:left;color:#6b7280;font-weight:500;">进度</th><th style="padding:10px 0;text-align:left;color:#6b7280;font-weight:500;">状态</th></tr>
+                <tr style="border-bottom:1px solid #f3f4f6;cursor:pointer;" onclick="showAdminPage('project')"><td style="padding:10px 0;">智能OA系统</td><td style="padding:10px 0;">陈经理</td><td style="padding:10px 0;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:65%;height:100%;background:#4f46e5;border-radius:3px;"></div></div></td><td style="padding:10px 0;"><span class="status-tag tag-approved">进行中</span></td></tr>
+                <tr style="border-bottom:1px solid #f3f4f6;cursor:pointer;" onclick="showAdminPage('project')"><td style="padding:10px 0;">官网2.0改版</td><td style="padding:10px 0;">周总监</td><td style="padding:10px 0;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:40%;height:100%;background:#f59e0b;border-radius:3px;"></div></div></td><td style="padding:10px 0;"><span class="status-tag tag-pending">进行中</span></td></tr>
+                <tr style="cursor:pointer;" onclick="showAdminPage('project')"><td style="padding:10px 0;">数据中台</td><td style="padding:10px 0;">陈经理</td><td style="padding:10px 0;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:80%;height:100%;background:#10b981;border-radius:3px;"></div></div></td><td style="padding:10px 0;"><span class="status-tag tag-active">进行中</span></td></tr>
+              </table>
+            </div>
+            <div class="dash-card">
+              <div class="dc-title">最近动态</div>
+              <div class="activity-item"><div class="act-avatar" style="background:#4f46e5;">张</div><div class="act-info"><div class="act-text"><strong>张三</strong> 提交了请假申请</div><div class="act-time">10分钟前</div></div></div>
+              <div class="activity-item"><div class="act-avatar" style="background:#10b981;">李</div><div class="act-info"><div class="act-text"><strong>李四</strong> 上传了报销单据</div><div class="act-time">30分钟前</div></div></div>
+              <div class="activity-item"><div class="act-avatar" style="background:#f59e0b;">王</div><div class="act-info"><div class="act-text"><strong>王五</strong> 完成了任务「客户拜访」</div><div class="act-time">1小时前</div></div></div>
+              <div class="activity-item"><div class="act-avatar" style="background:#ec4899;">赵</div><div class="act-info"><div class="act-text"><strong>赵六</strong> 提交了代码评审</div><div class="act-time">2小时前</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Users Management ===== -->
+      <div class="page" id="page-admin-users">
+        <div class="topbar"><div class="breadcrumb">组织管理 / <span>用户管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">用户管理</div><div class="tp-actions"><button class="btn" onclick="showToast('导出成功','success')">&#128228; 导出</button><button class="btn" onclick="showImportModal()">&#128196; 导入</button><button class="btn btn-primary" onclick="showUserFormModal()">&#43; 新增用户</button></div></div>
+          <div class="batch-bar" id="userBatchBar"><span>已选择 <strong id="userSelectCount">0</strong> 项</span><div class="batch-actions"><button class="btn" onclick="showToast('批量启用成功','success')">批量启用</button><button class="btn btn-danger" onclick="showConfirm('确定批量删除选中的用户吗？',()=>showToast('批量删除成功','success'))">批量删除</button><button class="btn" onclick="clearUserSelection()">取消选择</button></div></div>
+          <div class="filter-bar">
+            <div class="filter-item"><label>关键词:</label><input id="userSearch" placeholder="姓名/手机号/工号" style="width:180px;" oninput="filterUserTable()" /></div>
+            <div class="filter-item"><label>部门:</label><select id="userDept" onchange="filterUserTable()"><option value="">全部部门</option><option>技术部</option><option>市场部</option><option>销售部</option><option>行政部</option><option>财务部</option></select></div>
+            <div class="filter-item"><label>状态:</label><select id="userStatus" onchange="filterUserTable()"><option value="">全部</option><option>正常</option><option>禁用</option></select></div>
+            <button class="btn btn-primary" onclick="filterUserTable()">&#128269; 搜索</button>
+            <button class="btn" onclick="resetUserFilter()">&#128260; 重置</button>
+          </div>
+          <div class="data-table">
+            <table>
+              <thead><tr><th style="width:40px;"><input type="checkbox" class="checkbox" onchange="toggleAllUsers(this)" /></th><th>工号 <span class="sort-icon">&#8597;</span></th><th>姓名 <span class="sort-icon">&#8597;</span></th><th>部门</th><th>职位</th><th>手机号</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="userTableBody">
+              </tbody>
+            </table>
+            <div class="pagination"><span id="userPagInfo">共 0 条记录</span><div class="page-btns" id="userPagBtns"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Attendance Management ===== -->
+      <div class="page" id="page-admin-attendance">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>考勤管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">考勤管理</div><div class="tp-actions"><button class="btn" onclick="showToast('考勤报表导出成功','success')">&#128228; 导出报表</button><button class="btn" onclick="showToast('考勤数据同步中...','info')">&#128260; 同步考勤数据</button></div></div>
+          <div class="stat-cards" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px;">
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">应出勤</div><div class="sc-value" style="font-size:22px;">42</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">实出勤</div><div class="sc-value" style="font-size:22px;color:#10b981;">38</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">迟到</div><div class="sc-value" style="font-size:22px;color:#f59e0b;">2</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">早退</div><div class="sc-value" style="font-size:22px;color:#ef4444;">1</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">请假</div><div class="sc-value" style="font-size:22px;color:#3b82f6;">3</div></div>
+          </div>
+          <div class="filter-bar">
+            <div class="filter-item"><label>日期:</label><input type="date" value="2026-05-11" /></div>
+            <div class="filter-item"><label>部门:</label><select><option>全部</option><option>技术部</option><option>市场部</option></select></div>
+            <div class="filter-item"><label>状态:</label><select><option>全部</option><option>正常</option><option>迟到</option><option>早退</option><option>缺勤</option></select></div>
+            <button class="btn btn-primary" onclick="showToast('查询完成','info')">查询</button>
+          </div>
+          <div class="data-table">
+            <table>
+              <tr><th>工号</th><th>姓名</th><th>部门</th><th>上班打卡</th><th>下班打卡</th><th>工时</th><th>状态</th><th>操作</th></tr>
+              <tr><td>10001</td><td>陈经理</td><td>技术部</td><td>08:45</td><td>18:30</td><td>9.75h</td><td><span class="status-tag tag-active">正常</span></td><td><span class="action-link" onclick="showAttendanceDetail('陈经理')">详情</span></td></tr>
+              <tr><td>10002</td><td>刘思彤</td><td>技术部</td><td>08:52</td><td>--:--</td><td>--</td><td><span class="status-tag tag-approved">进行中</span></td><td><span class="action-link" onclick="showAttendanceDetail('刘思彤')">详情</span></td></tr>
+              <tr><td>10003</td><td>张三</td><td>技术部</td><td>09:15</td><td>18:00</td><td>8.75h</td><td><span class="status-tag tag-pending">迟到</span></td><td><span class="action-link" onclick="showAttendanceDetail('张三')">详情</span></td></tr>
+              <tr><td>20001</td><td>周总监</td><td>市场部</td><td>08:50</td><td>18:10</td><td>9.33h</td><td><span class="status-tag tag-active">正常</span></td><td><span class="action-link" onclick="showAttendanceDetail('周总监')">详情</span></td></tr>
+              <tr><td>20002</td><td>李四</td><td>市场部</td><td>09:20</td><td>17:50</td><td>8.5h</td><td><span class="status-tag tag-rejected">迟到+早退</span></td><td><span class="action-link" onclick="showAttendanceDetail('李四')">详情</span></td></tr>
+            </table>
+            <div class="pagination"><span>共 42 条记录</span><div class="page-btns"><div class="page-btn active" onclick="switchPage(this)">1</div><div class="page-btn" onclick="switchPage(this)">2</div><div class="page-btn" onclick="switchPage(this)">3</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Approval Management ===== -->
+      <div class="page" id="page-admin-approval">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>审批管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">审批管理</div></div>
+          <div class="tabs" id="approvalTabs">
+            <div class="tab active" onclick="switchApprovalTab(this,'all')">全部</div>
+            <div class="tab" onclick="switchApprovalTab(this,'pending')">待审批 <span class="tab-badge">5</span></div>
+            <div class="tab" onclick="switchApprovalTab(this,'approved')">已通过</div>
+            <div class="tab" onclick="switchApprovalTab(this,'rejected')">已拒绝</div>
+          </div>
+          <div class="data-table">
+            <table>
+              <tr><th>审批编号</th><th>类型</th><th>标题</th><th>申请人</th><th>部门</th><th>申请时间</th><th>状态</th><th>操作</th></tr>
+              <tr class="approval-row" data-status="pending"><td>AP20260511001</td><td><span class="status-tag tag-approved">请假</span></td><td>年假3天</td><td>张三</td><td>技术部</td><td>2026-05-11 09:15</td><td><span class="status-tag tag-pending">待审批</span></td><td><span class="action-link" onclick="showApprovalModal('AP20260511001','张三','年假3天')">审批</span></td></tr>
+              <tr class="approval-row" data-status="pending"><td>AP20260511002</td><td><span class="status-tag tag-pending">报销</span></td><td>差旅报销 ¥3,580</td><td>李四</td><td>市场部</td><td>2026-05-11 08:30</td><td><span class="status-tag tag-pending">待审批</span></td><td><span class="action-link" onclick="showApprovalModal('AP20260511002','李四','差旅报销')">审批</span></td></tr>
+              <tr class="approval-row" data-status="pending"><td>AP20260510001</td><td><span class="status-tag tag-active">出差</span></td><td>上海出差5天</td><td>王五</td><td>销售部</td><td>2026-05-10 17:20</td><td><span class="status-tag tag-pending">待审批</span></td><td><span class="action-link" onclick="showApprovalModal('AP20260510001','王五','上海出差')">审批</span></td></tr>
+              <tr class="approval-row" data-status="approved"><td>AP20260510002</td><td><span class="status-tag" style="background:#ede9fe;color:#7c3aed;">加班</span></td><td>加班3小时</td><td>赵六</td><td>技术部</td><td>2026-05-10 16:00</td><td><span class="status-tag tag-active">已通过</span></td><td><span class="action-link" onclick="showApprovalDetail('AP20260510002','赵六','加班3小时','已通过')">详情</span></td></tr>
+              <tr class="approval-row" data-status="rejected"><td>AP20260510003</td><td><span class="status-tag" style="background:#fce7f3;color:#db2777;">采购</span></td><td>电脑采购</td><td>孙七</td><td>行政部</td><td>2026-05-10 14:30</td><td><span class="status-tag tag-rejected">已拒绝</span></td><td><span class="action-link" onclick="showApprovalDetail('AP20260510003','孙七','电脑采购','已拒绝')">详情</span></td></tr>
+            </table>
+            <div class="pagination"><span>共 156 条记录</span><div class="page-btns"><div class="page-btn active" onclick="switchPage(this)">1</div><div class="page-btn" onclick="switchPage(this)">2</div><div class="page-btn" onclick="switchPage(this)">3</div><div class="page-btn">...</div><div class="page-btn" onclick="switchPage(this)">16</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Process Management ===== -->
+      <div class="page" id="page-admin-process">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>流程管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">流程模板管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showToast('新建流程模板功能','info')">&#43; 新建流程模板</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>流程名称</th><th>流程编码</th><th>适用范围</th><th>审批节点</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+              <tr><td>请假审批流程</td><td>LEAVE</td><td>全员</td><td>发起->主管->总监->HR</td><td><span class="status-tag tag-active">启用</span></td><td>2025-01-01</td><td><span class="action-link" onclick="showToast('编辑请假审批流程','info')">编辑</span> <span class="action-link" onclick="showProcessDesigner('LEAVE')">设计</span> <span class="action-link danger" onclick="showConfirm('确定停用该流程吗？',()=>showToast('已停用','warning'))">停用</span></td></tr>
+              <tr><td>报销审批流程</td><td>EXPENSE</td><td>全员</td><td>发起->主管->财务->出纳</td><td><span class="status-tag tag-active">启用</span></td><td>2025-01-01</td><td><span class="action-link" onclick="showToast('编辑报销审批流程','info')">编辑</span> <span class="action-link" onclick="showProcessDesigner('EXPENSE')">设计</span> <span class="action-link danger" onclick="showConfirm('确定停用该流程吗？',()=>showToast('已停用','warning'))">停用</span></td></tr>
+              <tr><td>出差审批流程</td><td>TRAVEL</td><td>全员</td><td>发起->主管->总监->行政</td><td><span class="status-tag tag-active">启用</span></td><td>2025-01-01</td><td><span class="action-link" onclick="showToast('编辑出差审批流程','info')">编辑</span> <span class="action-link" onclick="showProcessDesigner('TRAVEL')">设计</span> <span class="action-link danger" onclick="showConfirm('确定停用该流程吗？',()=>showToast('已停用','warning'))">停用</span></td></tr>
+              <tr><td>加班审批流程</td><td>OVERTIME</td><td>全员</td><td>发起->主管</td><td><span class="status-tag tag-active">启用</span></td><td>2025-01-15</td><td><span class="action-link" onclick="showToast('编辑加班审批流程','info')">编辑</span> <span class="action-link" onclick="showProcessDesigner('OVERTIME')">设计</span> <span class="action-link danger" onclick="showConfirm('确定停用该流程吗？',()=>showToast('已停用','warning'))">停用</span></td></tr>
+              <tr><td>采购审批流程</td><td>PURCHASE</td><td>全员</td><td>发起->主管->财务->总经理</td><td><span class="status-tag tag-active">启用</span></td><td>2025-02-01</td><td><span class="action-link" onclick="showToast('编辑采购审批流程','info')">编辑</span> <span class="action-link" onclick="showProcessDesigner('PURCHASE')">设计</span> <span class="action-link danger" onclick="showConfirm('确定停用该流程吗？',()=>showToast('已停用','warning'))">停用</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Personnel Management ===== -->
+      <div class="page" id="page-admin-personnel">
+        <div class="topbar"><div class="breadcrumb">组织管理 / <span>人事管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">人事管理</div><div class="tp-actions"><button class="btn" onclick="showToast('导出成功','success')">&#128228; 导出</button><button class="btn btn-primary" onclick="showPersonnelFormModal()">&#43; 新增员工</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>工号</th><th>姓名</th><th>性别</th><th>部门</th><th>职位</th><th>入职日期</th><th>合同到期</th><th>状态</th><th>操作</th></tr>
+              <tr><td>10001</td><td>陈经理</td><td>男</td><td>技术部</td><td>技术总监</td><td>2025-01-01</td><td>2028-01-01</td><td><span class="status-tag tag-active">在职</span></td><td><span class="action-link" onclick="showPersonnelDetail('陈经理')">查看</span> <span class="action-link" onclick="showToast('编辑员工信息','info')">编辑</span></td></tr>
+              <tr><td>10002</td><td>刘思彤</td><td>女</td><td>技术部</td><td>高级开发</td><td>2025-03-15</td><td>2028-03-15</td><td><span class="status-tag tag-active">在职</span></td><td><span class="action-link" onclick="showPersonnelDetail('刘思彤')">查看</span> <span class="action-link" onclick="showToast('编辑员工信息','info')">编辑</span></td></tr>
+              <tr><td>10003</td><td>张三</td><td>男</td><td>技术部</td><td>前端开发</td><td>2025-06-01</td><td>2028-06-01</td><td><span class="status-tag tag-active">在职</span></td><td><span class="action-link" onclick="showPersonnelDetail('张三')">查看</span> <span class="action-link" onclick="showToast('编辑员工信息','info')">编辑</span></td></tr>
+              <tr><td>10005</td><td>钱八</td><td>女</td><td>市场部</td><td>市场专员</td><td>2026-05-01</td><td>2027-05-01</td><td><span class="status-tag tag-pending">试用期</span></td><td><span class="action-link" onclick="showPersonnelDetail('钱八')">查看</span> <span class="action-link" onclick="showToast('编辑员工信息','info')">编辑</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Meeting Management ===== -->
+      <div class="page" id="page-admin-meeting">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>会议管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">会议管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showMeetingFormModal()">&#43; 预约会议</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>会议主题</th><th>会议室</th><th>组织者</th><th>开始时间</th><th>结束时间</th><th>参会人</th><th>状态</th><th>操作</th></tr>
+              <tr><td>项目周例会</td><td>会议室A</td><td>陈经理</td><td>2026-05-11 10:00</td><td>2026-05-11 11:30</td><td>8人</td><td><span class="status-tag tag-approved">进行中</span></td><td><span class="action-link" onclick="showMeetingDetail('项目周例会')">详情</span> <span class="action-link" onclick="showToast('查看会议纪要','info')">会议纪要</span></td></tr>
+              <tr><td>需求评审会</td><td>会议室B</td><td>刘思彤</td><td>2026-05-11 14:00</td><td>2026-05-11 15:00</td><td>3人</td><td><span class="status-tag tag-pending">未开始</span></td><td><span class="action-link" onclick="showMeetingDetail('需求评审会')">详情</span> <span class="action-link danger" onclick="showConfirm('确定取消该会议吗？',()=>showToast('会议已取消','warning'))">取消</span></td></tr>
+              <tr><td>跨部门协调会</td><td>线上</td><td>周总监</td><td>2026-05-11 16:00</td><td>2026-05-11 16:30</td><td>5人</td><td><span class="status-tag tag-pending">未开始</span></td><td><span class="action-link" onclick="showMeetingDetail('跨部门协调会')">详情</span> <span class="action-link danger" onclick="showConfirm('确定取消该会议吗？',()=>showToast('会议已取消','warning'))">取消</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Task Management ===== -->
+      <div class="page" id="page-admin-task">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>任务管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">任务管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showTaskFormModal()">&#43; 创建任务</button></div></div>
+          <div class="stat-cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">全部任务</div><div class="sc-value" style="font-size:22px;">28</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">进行中</div><div class="sc-value" style="font-size:22px;color:#4f46e5;">12</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">已完成</div><div class="sc-value" style="font-size:22px;color:#10b981;">14</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">已逾期</div><div class="sc-value" style="font-size:22px;color:#ef4444;">2</div></div>
+          </div>
+          <div class="data-table">
+            <table>
+              <tr><th>任务名称</th><th>所属项目</th><th>负责人</th><th>优先级</th><th>截止日期</th><th>进度</th><th>状态</th><th>操作</th></tr>
+              <tr><td>设计数据库表结构</td><td>智能OA系统</td><td>刘思彤</td><td><span style="color:#ef4444;">&#9679; 高</span></td><td>2026-05-11</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:100%;height:100%;background:#10b981;border-radius:3px;"></div></div><span style="font-size:11px;">100%</span></div></td><td><span class="status-tag tag-active">已完成</span></td><td><span class="action-link" onclick="showTaskDetail('设计数据库表结构')">详情</span></td></tr>
+              <tr><td>实现用户登录接口</td><td>智能OA系统</td><td>赵六</td><td><span style="color:#ef4444;">&#9679; 高</span></td><td>2026-05-12</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:30%;height:100%;background:#4f46e5;border-radius:3px;"></div></div><span style="font-size:11px;">30%</span></div></td><td><span class="status-tag tag-approved">进行中</span></td><td><span class="action-link" onclick="showTaskDetail('实现用户登录接口')">详情</span></td></tr>
+              <tr><td>编写API接口文档</td><td>智能OA系统</td><td>刘思彤</td><td><span style="color:#f59e0b;">&#9679; 中</span></td><td>2026-05-13</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:10%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="font-size:11px;">10%</span></div></td><td><span class="status-tag tag-pending">待开始</span></td><td><span class="action-link" onclick="showTaskDetail('编写API接口文档')">详情</span></td></tr>
+              <tr><td>前端首页UI开发</td><td>智能OA系统</td><td>张三</td><td><span style="color:#ef4444;">&#9679; 高</span></td><td>2026-05-14</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:20%;height:100%;background:#4f46e5;border-radius:3px;"></div></div><span style="font-size:11px;">20%</span></div></td><td><span class="status-tag tag-approved">进行中</span></td><td><span class="action-link" onclick="showTaskDetail('前端首页UI开发')">详情</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Schedule Management ===== -->
+      <div class="page" id="page-admin-schedule">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>日程管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">日程管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showScheduleFormModal()">&#43; 新建日程</button></div></div>
+          <div class="dash-card" style="margin-bottom:16px;">
+            <div class="dc-title">2026年5月 日程概览</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">
+              <div style="font-size:12px;color:#9ca3af;padding:4px;">日</div><div style="font-size:12px;color:#9ca3af;padding:4px;">一</div><div style="font-size:12px;color:#9ca3af;padding:4px;">二</div><div style="font-size:12px;color:#9ca3af;padding:4px;">三</div><div style="font-size:12px;color:#9ca3af;padding:4px;">四</div><div style="font-size:12px;color:#9ca3af;padding:4px;">五</div><div style="font-size:12px;color:#9ca3af;padding:4px;">六</div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;">11</div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;background:#4f46e5;color:#fff;cursor:pointer;" onclick="showToast('5月12日: 3项日程','info')">12<div style="font-size:9px;">3项</div></div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;background:#fef3c7;cursor:pointer;" onclick="showToast('5月13日: 1项日程','info')">13<div style="font-size:9px;">1项</div></div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;">14</div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;background:#dbeafe;cursor:pointer;" onclick="showToast('5月15日: 2项日程','info')">15<div style="font-size:9px;">2项</div></div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;">16</div>
+              <div style="padding:8px;border-radius:6px;font-size:13px;">17</div>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-title">5月12日 日程安排</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;" onclick="showToast('查看日程详情: 团队晨会','info')"><span style="font-size:13px;color:#4f46e5;font-weight:500;min-width:50px;">09:00</span><div style="flex:1;padding:10px;background:#ede9fe;border-radius:8px;border-left:3px solid #4f46e5;"><div style="font-size:13px;font-weight:500;">团队晨会</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">会议室A · 15分钟</div></div></div>
+              <div style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;" onclick="showToast('查看日程详情: 项目周例会','info')"><span style="font-size:13px;color:#f59e0b;font-weight:500;min-width:50px;">10:00</span><div style="flex:1;padding:10px;background:#fef3c7;border-radius:8px;border-left:3px solid #f59e0b;"><div style="font-size:13px;font-weight:500;">项目周例会</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">会议室A · 1.5小时 · 8人</div></div></div>
+              <div style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;" onclick="showToast('查看日程详情: 需求评审会','info')"><span style="font-size:13px;color:#10b981;font-weight:500;min-width:50px;">14:00</span><div style="flex:1;padding:10px;background:#d1fae5;border-radius:8px;border-left:3px solid #10b981;"><div style="font-size:13px;font-weight:500;">需求评审会</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">会议室B · 1小时 · 3人</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Document Management ===== -->
+      <div class="page" id="page-admin-document">
+        <div class="topbar"><div class="breadcrumb">办公管理 / <span>文档管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">文档管理</div><div class="tp-actions"><button class="btn" onclick="showToast('文件夹创建成功','success')">&#128229; 新建文件夹</button><button class="btn btn-primary" onclick="showUploadModal()">&#43; 上传文档</button></div></div>
+          <div class="filter-bar">
+            <div class="filter-item"><label>文件名:</label><input placeholder="搜索文档" /></div>
+            <div class="filter-item"><label>类型:</label><select><option>全部</option><option>Word</option><option>Excel</option><option>PDF</option><option>PPT</option></select></div>
+            <button class="btn btn-primary" onclick="showToast('查询完成','info')">查询</button>
+          </div>
+          <div class="data-table">
+            <table>
+              <tr><th>文件名</th><th>类型</th><th>大小</th><th>上传者</th><th>所属目录</th><th>更新时间</th><th>权限</th><th>操作</th></tr>
+              <tr><td>&#128196; 2026年Q2工作计划.docx</td><td>Word</td><td>256KB</td><td>刘思彤</td><td>技术部</td><td>2026-05-10</td><td>部门可见</td><td><span class="action-link" onclick="showToast('文件下载中...','info')">下载</span> <span class="action-link" onclick="showShareModal()">分享</span> <span class="action-link danger" onclick="showConfirm('确定删除该文件吗？此操作不可恢复。',()=>showToast('文件已删除','success'))">删除</span></td></tr>
+              <tr><td>&#128202; 4月考勤统计表.xlsx</td><td>Excel</td><td>128KB</td><td>人事部</td><td>人事部</td><td>2026-05-08</td><td>全员可见</td><td><span class="action-link" onclick="showToast('文件下载中...','info')">下载</span> <span class="action-link" onclick="showShareModal()">分享</span> <span class="action-link danger" onclick="showConfirm('确定删除该文件吗？',()=>showToast('文件已删除','success'))">删除</span></td></tr>
+              <tr><td>&#128213; 员工手册2026版.pdf</td><td>PDF</td><td>2.1MB</td><td>行政部</td><td>公司制度</td><td>2026-04-15</td><td>全员可见</td><td><span class="action-link" onclick="showToast('文件下载中...','info')">下载</span> <span class="action-link" onclick="showShareModal()">分享</span></td></tr>
+              <tr><td>&#128214; 项目汇报-5月.pptx</td><td>PPT</td><td>5.4MB</td><td>陈经理</td><td>项目文档</td><td>2026-05-09</td><td>项目组</td><td><span class="action-link" onclick="showToast('文件下载中...','info')">下载</span> <span class="action-link" onclick="showShareModal()">分享</span> <span class="action-link danger" onclick="showConfirm('确定删除该文件吗？',()=>showToast('文件已删除','success'))">删除</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Project Management ===== -->
+      <div class="page" id="page-admin-project">
+        <div class="topbar"><div class="breadcrumb">业务管理 / <span>项目管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">项目管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showProjectFormModal()">&#43; 创建项目</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>项目名称</th><th>负责人</th><th>参与部门</th><th>开始日期</th><th>截止日期</th><th>进度</th><th>状态</th><th>操作</th></tr>
+              <tr><td>智能OA办公系统</td><td>陈经理</td><td>技术部</td><td>2026-04-01</td><td>2026-07-30</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:65%;height:100%;background:#4f46e5;border-radius:3px;"></div></div><span style="font-size:12px;">65%</span></div></td><td><span class="status-tag tag-approved">进行中</span></td><td><span class="action-link" onclick="showProjectDetail('智能OA办公系统')">详情</span> <span class="action-link" onclick="showToast('编辑项目','info')">编辑</span></td></tr>
+              <tr><td>官网2.0改版</td><td>周总监</td><td>市场部</td><td>2026-05-01</td><td>2026-06-15</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:40%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="font-size:12px;">40%</span></div></td><td><span class="status-tag tag-pending">进行中</span></td><td><span class="action-link" onclick="showProjectDetail('官网2.0改版')">详情</span> <span class="action-link" onclick="showToast('编辑项目','info')">编辑</span></td></tr>
+              <tr><td>数据中台建设</td><td>陈经理</td><td>技术部</td><td>2026-01-15</td><td>2026-05-31</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:80%;height:100%;background:#10b981;border-radius:3px;"></div></div><span style="font-size:12px;">80%</span></div></td><td><span class="status-tag tag-active">进行中</span></td><td><span class="action-link" onclick="showProjectDetail('数据中台建设')">详情</span> <span class="action-link" onclick="showToast('编辑项目','info')">编辑</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Performance Management ===== -->
+      <div class="page" id="page-admin-performance">
+        <div class="topbar"><div class="breadcrumb">业务管理 / <span>绩效管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">绩效管理</div><div class="tp-actions"><button class="btn" onclick="showToast('报表导出成功','success')">&#128228; 导出报表</button><button class="btn btn-primary" onclick="showToast('发起绩效考核','info')">&#43; 发起考核</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>工号</th><th>姓名</th><th>部门</th><th>工作业绩</th><th>工作态度</th><th>团队协作</th><th>综合得分</th><th>等级</th><th>操作</th></tr>
+              <tr><td>10002</td><td>刘思彤</td><td>技术部</td><td>95</td><td>90</td><td>88</td><td><strong>92</strong></td><td><span style="color:#4f46e5;font-weight:600;">A</span></td><td><span class="action-link" onclick="showPerformanceDetail('刘思彤')">详情</span></td></tr>
+              <tr><td>10003</td><td>张三</td><td>技术部</td><td>82</td><td>85</td><td>90</td><td><strong>85</strong></td><td><span style="color:#10b981;font-weight:600;">B</span></td><td><span class="action-link" onclick="showPerformanceDetail('张三')">详情</span></td></tr>
+              <tr><td>10004</td><td>赵六</td><td>技术部</td><td>78</td><td>80</td><td>85</td><td><strong>80</strong></td><td><span style="color:#f59e0b;font-weight:600;">C</span></td><td><span class="action-link" onclick="showPerformanceDetail('赵六')">详情</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Salary Management ===== -->
+      <div class="page" id="page-admin-salary">
+        <div class="topbar"><div class="breadcrumb">业务管理 / <span>薪资管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">薪资管理</div><div class="tp-actions"><button class="btn" onclick="showToast('工资条导出成功','success')">&#128228; 导出工资条</button><button class="btn btn-primary" onclick="showConfirm('确定发放本月工资吗？发放后不可撤回。',()=>showToast('工资发放成功！','success'))">&#43; 发放工资</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>工号</th><th>姓名</th><th>部门</th><th>基本工资</th><th>岗位津贴</th><th>绩效奖金</th><th>社保</th><th>公积金</th><th>个税</th><th>实发工资</th><th>状态</th><th>操作</th></tr>
+              <tr><td>10001</td><td>陈经理</td><td>技术部</td><td>15,000</td><td>5,000</td><td>4,000</td><td>1,500</td><td>1,000</td><td>890</td><td><strong>20,610</strong></td><td><span class="status-tag tag-active">已发放</span></td><td><span class="action-link" onclick="showSalaryDetail('陈经理')">工资条</span></td></tr>
+              <tr><td>10002</td><td>刘思彤</td><td>技术部</td><td>12,000</td><td>3,000</td><td>2,500</td><td>1,200</td><td>800</td><td>520</td><td><strong>18,500</strong></td><td><span class="status-tag tag-active">已发放</span></td><td><span class="action-link" onclick="showSalaryDetail('刘思彤')">工资条</span></td></tr>
+              <tr><td>10003</td><td>张三</td><td>技术部</td><td>10,000</td><td>2,000</td><td>1,800</td><td>1,000</td><td>667</td><td>380</td><td><strong>13,690</strong></td><td><span class="status-tag tag-active">已发放</span></td><td><span class="action-link" onclick="showSalaryDetail('张三')">工资条</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Asset Management ===== -->
+      <div class="page" id="page-admin-asset">
+        <div class="topbar"><div class="breadcrumb">业务管理 / <span>资产管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">资产管理</div><div class="tp-actions"><button class="btn" onclick="showToast('导出成功','success')">&#128228; 导出</button><button class="btn btn-primary" onclick="showAssetFormModal()">&#43; 资产登记</button></div></div>
+          <div class="stat-cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">资产总数</div><div class="sc-value" style="font-size:22px;">86</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">使用中</div><div class="sc-value" style="font-size:22px;color:#3b82f6;">62</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">空闲</div><div class="sc-value" style="font-size:22px;color:#10b981;">20</div></div>
+            <div class="stat-card" style="padding:14px;"><div class="sc-label">维修中</div><div class="sc-value" style="font-size:22px;color:#f59e0b;">4</div></div>
+          </div>
+          <div class="data-table">
+            <table>
+              <tr><th>资产编号</th><th>资产名称</th><th>分类</th><th>使用人</th><th>购入日期</th><th>原值</th><th>状态</th><th>操作</th></tr>
+              <tr><td>A20260101</td><td>MacBook Pro 14寸</td><td>电脑</td><td>刘思彤</td><td>2026-01-15</td><td>¥16,999</td><td><span class="status-tag tag-using">使用中</span></td><td><span class="action-link" onclick="showAssetDetail('MacBook Pro 14寸')">详情</span> <span class="action-link" onclick="showConfirm('确定归还该资产吗？',()=>showToast('归还成功','success'))">归还</span></td></tr>
+              <tr><td>A20260102</td><td>iPhone 15 Pro</td><td>手机</td><td>刘思彤</td><td>2026-01-15</td><td>¥8,999</td><td><span class="status-tag tag-using">使用中</span></td><td><span class="action-link" onclick="showAssetDetail('iPhone 15 Pro')">详情</span> <span class="action-link" onclick="showConfirm('确定归还该资产吗？',()=>showToast('归还成功','success'))">归还</span></td></tr>
+              <tr><td>A20250234</td><td>ThinkPad X1 Carbon</td><td>电脑</td><td>--</td><td>2025-06-01</td><td>¥12,999</td><td><span class="status-tag tag-idle">空闲</span></td><td><span class="action-link" onclick="showAssetDetail('ThinkPad X1 Carbon')">详情</span> <span class="action-link" onclick="showToast('请选择领用人','info')">领用</span></td></tr>
+              <tr><td>A20250301</td><td>投影仪</td><td>设备</td><td>--</td><td>2025-03-01</td><td>¥5,999</td><td><span class="status-tag tag-repair">维修中</span></td><td><span class="action-link" onclick="showAssetDetail('投影仪')">详情</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Handover ===== -->
+      <div class="page" id="page-admin-handover">
+        <div class="topbar"><div class="breadcrumb">沟通协作 / <span>工作交接</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">工作交接</div><div class="tp-actions"><button class="btn btn-primary" onclick="showHandoverFormModal()">&#43; 发起交接</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>交接标题</th><th>交接人</th><th>接收人</th><th>发起时间</th><th>完成度</th><th>状态</th><th>操作</th></tr>
+              <tr><td>OA系统前端开发交接</td><td>刘思彤</td><td>张三</td><td>2026-05-10</td><td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:60%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="font-size:11px;">60%</span></div></td><td><span class="status-tag tag-pending">交接中</span></td><td><span class="action-link" onclick="showHandoverDetail('OA系统前端开发交接')">详情</span></td></tr>
+              <tr><td>宠物医院项目后端交接</td><td>刘思彤</td><td>赵六</td><td>2026-04-28</td><td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:#f3f4f6;border-radius:3px;"><div style="width:100%;height:100%;background:#10b981;border-radius:3px;"></div></div><span style="font-size:11px;">100%</span></div></td><td><span class="status-tag tag-active">已完成</span></td><td><span class="action-link" onclick="showHandoverDetail('宠物医院项目后端交接')">详情</span></td></tr>
+              <tr><td>官网改版需求文档交接</td><td>周总监</td><td>刘思彤</td><td>2026-05-11</td><td><span style="font-size:11px;color:#9ca3af;">0%</span></td><td><span class="status-tag tag-approved">待确认</span></td><td><span class="action-link" onclick="showConfirm('确认接收该工作交接吗？',()=>showToast('已确认接收','success'))">确认</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Announcement Management ===== -->
+      <div class="page" id="page-admin-announce">
+        <div class="topbar"><div class="breadcrumb">沟通协作 / <span>公告管理</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="table-page">
+          <div class="tp-header"><div class="tp-title">公告管理</div><div class="tp-actions"><button class="btn btn-primary" onclick="showAnnounceFormModal()">&#43; 发布公告</button></div></div>
+          <div class="data-table">
+            <table>
+              <tr><th>公告标题</th><th>类型</th><th>发布人</th><th>发布范围</th><th>发布时间</th><th>阅读量</th><th>状态</th><th>操作</th></tr>
+              <tr><td>关于2026年端午节放假安排的通知</td><td>公司公告</td><td>行政部</td><td>全员</td><td>2026-05-11</td><td>128</td><td><span class="status-tag tag-active">已发布</span></td><td><span class="action-link" onclick="showAnnounceDetail('关于2026年端午节放假安排的通知')">查看</span> <span class="action-link danger" onclick="showConfirm('确定撤回该公告吗？',()=>showToast('公告已撤回','warning'))">撤回</span></td></tr>
+              <tr><td>新员工入职培训安排</td><td>部门通知</td><td>人事部</td><td>全员</td><td>2026-05-10</td><td>85</td><td><span class="status-tag tag-active">已发布</span></td><td><span class="action-link" onclick="showAnnounceDetail('新员工入职培训安排')">查看</span> <span class="action-link danger" onclick="showConfirm('确定撤回该公告吗？',()=>showToast('公告已撤回','warning'))">撤回</span></td></tr>
+              <tr><td>办公区域装修通知</td><td>公司公告</td><td>行政部</td><td>全员</td><td>2026-05-09</td><td>62</td><td><span class="status-tag tag-active">已发布</span></td><td><span class="action-link" onclick="showAnnounceDetail('办公区域装修通知')">查看</span> <span class="action-link danger" onclick="showConfirm('确定撤回该公告吗？',()=>showToast('公告已撤回','warning'))">撤回</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== System Settings ===== -->
+      <div class="page" id="page-admin-settings">
+        <div class="topbar"><div class="breadcrumb">系统 / <span>系统设置</span></div><div class="topbar-right"><div class="tb-user" onclick="toggleUserMenu()"><div class="tb-avatar">刘</div><span style="font-size:13px;">刘思彤</span></div></div></div>
+        <div class="settings-page">
+          <div class="settings-card">
+            <h3>基本设置</h3>
+            <div class="setting-item"><div><div class="setting-label">系统名称</div><div class="setting-desc" id="sysName">智能OA办公系统</div></div><span class="action-link" onclick="showEditSettingModal('系统名称','sysName','智能OA办公系统')">修改</span></div>
+            <div class="setting-item"><div><div class="setting-label">Logo</div><div class="setting-desc">当前: 默认Logo</div></div><span class="action-link" onclick="showToast('Logo更换功能','info')">更换</span></div>
+            <div class="setting-item"><div><div class="setting-label">系统版本</div><div class="setting-desc">v1.0.0</div></div></div>
+          </div>
+          <div class="settings-card">
+            <h3>组织架构</h3>
+            <div class="setting-item"><div><div class="setting-label">部门管理</div><div class="setting-desc">管理公司部门架构</div></div><span class="action-link" onclick="showToast('部门管理页面','info')">管理</span></div>
+            <div class="setting-item"><div><div class="setting-label">职位管理</div><div class="setting-desc">管理职位体系</div></div><span class="action-link" onclick="showToast('职位管理页面','info')">管理</span></div>
+            <div class="setting-item"><div><div class="setting-label">角色权限</div><div class="setting-desc">管理员、普通用户等角色配置</div></div><span class="action-link" onclick="showToast('角色权限页面','info')">管理</span></div>
+          </div>
+          <div class="settings-card">
+            <h3>考勤设置</h3>
+            <div class="setting-item"><div><div class="setting-label">工作时间</div><div class="setting-desc" id="workTime">09:00 - 18:00 (弹性15分钟)</div></div><span class="action-link" onclick="showEditSettingModal('工作时间','workTime','09:00 - 18:00')">修改</span></div>
+            <div class="setting-item"><div><div class="setting-label">打卡方式</div><div class="setting-desc" id="clockMethod">GPS定位 + WiFi打卡</div></div><span class="action-link" onclick="showEditSettingModal('打卡方式','clockMethod','GPS定位 + WiFi打卡')">修改</span></div>
+            <div class="setting-item"><div><div class="setting-label">节假日配置</div><div class="setting-desc">配置法定节假日和调休</div></div><span class="action-link" onclick="showToast('节假日配置页面','info')">配置</span></div>
+          </div>
+          <div class="settings-card">
+            <h3>通知设置</h3>
+            <div class="setting-item"><div><div class="setting-label">审批提醒</div><div class="setting-desc">新审批时推送通知</div></div><div class="switch on" onclick="toggleSwitch(this,'审批提醒')"></div></div>
+            <div class="setting-item"><div><div class="setting-label">考勤提醒</div><div class="setting-desc">每日上下班打卡提醒</div></div><div class="switch on" onclick="toggleSwitch(this,'考勤提醒')"></div></div>
+            <div class="setting-item"><div><div class="setting-label">会议提醒</div><div class="setting-desc">会议开始前15分钟提醒</div></div><div class="switch on" onclick="toggleSwitch(this,'会议提醒')"></div></div>
+            <div class="setting-item"><div><div class="setting-label">公告提醒</div><div class="setting-desc">新公告发布时推送</div></div><div class="switch on" onclick="toggleSwitch(this,'公告提醒')"></div></div>
+          </div>
+          <div class="settings-card">
+            <h3>系统维护</h3>
+            <div class="setting-item"><div><div class="setting-label">数据备份</div><div class="setting-desc">上次备份: 2026-05-10 23:00</div></div><button class="btn btn-primary" onclick="showConfirm('确定立即备份数据吗？备份期间系统可能短暂无响应。',()=>showToast('数据备份成功！','success'))">立即备份</button></div>
+            <div class="setting-item"><div><div class="setting-label">操作日志</div><div class="setting-desc">查看系统操作记录</div></div><span class="action-link" onclick="showToast('操作日志页面','info')">查看</span></div>
+            <div class="setting-item"><div><div class="setting-label">接口文档</div><div class="setting-desc">Swagger API文档</div></div><span class="action-link" onclick="showToast('即将跳转到Swagger文档','info')">查看</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="bottom-tab-bar" id="bottomTabBar">
+  <div class="scroll-hint" onclick="scrollTab(-1)">&#9664;</div>
+  <div class="tab-scroll" id="adminPageNav"></div>
+  <div class="scroll-hint" onclick="scrollTab(1)">&#9654;</div>
+</div>
+
+<script>
+// ========== Toast ==========
+function showToast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icons = {success:'&#10004;',error:'&#10008;',info:'&#8505;',warning:'&#9888;'};
+  t.innerHTML = (icons[type]||'') + ' ' + msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.animation='toastOut 0.3s ease forwards'; setTimeout(()=>t.remove(),300); }, 2500);
+}
+
+// ========== Modal System ==========
+function showModal(title, bodyHtml, footerHtml, width) {
+  closeModal();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.id = 'modalOverlay';
+  o.onclick = e => { if(e.target===o) closeModal(); };
+  const m = document.createElement('div');
+  m.className = 'modal';
+  if(width) m.style.width = width;
+  m.innerHTML = `<div class="modal-header"><h3>${title}</h3><button class="modal-close" onclick="closeModal()">&times;</button></div><div class="modal-body">${bodyHtml}</div>${footerHtml?'<div class="modal-footer">'+footerHtml+'</div>':''}`;
+  o.appendChild(m);
+  document.body.appendChild(o);
+}
+function closeModal() {
+  const o = document.getElementById('modalOverlay');
+  if(o) o.remove();
+}
+
+// ========== Confirm ==========
+function showConfirm(msg, onOk) {
+  showModal('操作确认',
+    `<div class="confirm-content"><div class="confirm-icon">&#9888;</div><div class="confirm-text">${msg}</div></div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" id="confirmOkBtn">确定</button>`,
+    '400px'
+  );
+  document.getElementById('confirmOkBtn').onclick = ()=>{ closeModal(); onOk && onOk(); };
+}
+
+// ========== User Dropdown ==========
+function toggleUserMenu() {
+  const d = document.getElementById('userDropdown');
+  d.style.display = d.style.display==='none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  const d = document.getElementById('userDropdown');
+  if(d && d.style.display==='block' && !e.target.closest('.tb-user')) d.style.display='none';
+});
+
+// ========== Login ==========
+function refreshCaptcha() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0;i<4;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('captchaImg').textContent = code;
+}
+document.getElementById('captchaImg').onclick = refreshCaptcha;
+
+function handleLogin() {
+  let valid = true;
+  const user = document.getElementById('loginUser');
+  const pwd = document.getElementById('loginPwd');
+  const captcha = document.getElementById('loginCaptcha');
+  const userErr = document.getElementById('loginUserErr');
+  const pwdErr = document.getElementById('loginPwdErr');
+  const captchaErr = document.getElementById('loginCaptchaErr');
+
+  [user,pwd,captcha].forEach(i=>i.classList.remove('error'));
+  [userErr,pwdErr,captchaErr].forEach(e=>e.classList.remove('show'));
+
+  if(!user.value.trim()) { user.classList.add('error'); userErr.classList.add('show'); valid=false; }
+  if(!pwd.value.trim()) { pwd.classList.add('error'); pwdErr.classList.add('show'); valid=false; }
+  if(!captcha.value.trim()) { captcha.classList.add('error'); captchaErr.classList.add('show'); valid=false; }
+
+  if(!valid) return;
+
+  const btn = document.getElementById('loginBtn');
+  btn.classList.add('loading');
+  btn.textContent = '登录中...';
+  setTimeout(()=>{
+    btn.classList.remove('loading');
+    btn.textContent = '登 录';
+    showAdminPage('dashboard');
+    showToast('登录成功，欢迎回来！','success');
+  }, 800);
+}
+
+// ========== Sidebar ==========
+const sidebarMenuData = [
+  { group: '概览', items: [{id:'dashboard',icon:'&#128202;',label:'仪表盘'}] },
+  { group: '组织管理', items: [{id:'users',icon:'&#128100;',label:'用户管理'},{id:'personnel',icon:'&#128101;',label:'人事管理'}] },
+  { group: '办公管理', items: [
+    {id:'attendance',icon:'&#9201;',label:'考勤管理'},{id:'approval',icon:'&#9993;',label:'审批管理',badge:5},
+    {id:'process',icon:'&#128300;',label:'流程管理'},{id:'meeting',icon:'&#128197;',label:'会议管理'},
+    {id:'task',icon:'&#9745;',label:'任务管理'},{id:'schedule',icon:'&#128197;',label:'日程管理'},
+    {id:'document',icon:'&#128196;',label:'文档管理'}
+  ]},
+  { group: '业务管理', items: [
+    {id:'project',icon:'&#128188;',label:'项目管理'},{id:'performance',icon:'&#128200;',label:'绩效管理'},
+    {id:'salary',icon:'&#128176;',label:'薪资管理'},{id:'asset',icon:'&#128187;',label:'资产管理'}
+  ]},
+  { group: '沟通协作', items: [{id:'handover',icon:'&#128221;',label:'工作交接'},{id:'announce',icon:'&#128227;',label:'公告管理'}] },
+  { group: '系统', items: [{id:'settings',icon:'&#9881;',label:'系统设置'}] }
+];
+
+function buildSidebar() {
+  const menu = document.getElementById('sidebarMenu');
+  menu.innerHTML = '';
+  sidebarMenuData.forEach(g => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'menu-group';
+    groupEl.innerHTML = g.group + '<span class="mi-arrow open">&#9654;</span>';
+    groupEl.onclick = () => {
+      const items = groupEl.nextElementSibling;
+      const arrow = groupEl.querySelector('.mi-arrow');
+      items.classList.toggle('collapsed');
+      arrow.classList.toggle('open');
+    };
+    menu.appendChild(groupEl);
+    const itemsEl = document.createElement('div');
+    itemsEl.className = 'menu-group-items';
+    itemsEl.style.maxHeight = (g.items.length * 45) + 'px';
+    g.items.forEach(item => {
+      const mi = document.createElement('div');
+      mi.className = 'menu-item' + (item.id==='dashboard' ? ' active' : '');
+      mi.setAttribute('data-page', item.id);
+      mi.innerHTML = `<span class="mi-icon">${item.icon}</span><span>${item.label}</span>${item.badge?'<span class="mi-badge">'+item.badge+'</span>':''}`;
+      mi.onclick = () => showAdminPage(item.id);
+      itemsEl.appendChild(mi);
+    });
+    menu.appendChild(itemsEl);
+  });
+}
+buildSidebar();
+
+let sidebarCollapsed = false;
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('sidebarToggle').innerHTML = sidebarCollapsed ? '&#9654;' : '&#9664;';
+}
+
+// ========== Page Navigation ==========
+const adminPages = [
+  {id:'admin-login',label:'登录页'},{id:'dashboard',label:'仪表盘'},{id:'users',label:'用户管理'},
+  {id:'personnel',label:'人事管理'},{id:'attendance',label:'考勤管理'},{id:'approval',label:'审批管理'},
+  {id:'process',label:'流程管理'},{id:'meeting',label:'会议管理'},{id:'task',label:'任务管理'},
+  {id:'schedule',label:'日程管理'},{id:'document',label:'文档管理'},{id:'project',label:'项目管理'},
+  {id:'performance',label:'绩效管理'},{id:'salary',label:'薪资管理'},{id:'asset',label:'资产管理'},
+  {id:'handover',label:'工作交接'},{id:'announce',label:'公告管理'},{id:'settings',label:'系统设置'}
+];
+
+const navEl = document.getElementById('adminPageNav');
+adminPages.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'bt-tab' + (p.id === 'admin-login' ? ' active' : '');
+  btn.textContent = p.label;
+  btn.onclick = () => {
+    showAdminPage(p.id);
+    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  };
+  navEl.appendChild(btn);
+});
+
+function scrollTab(dir) {
+  const el = document.getElementById('adminPageNav');
+  el.scrollLeft += dir * 200;
+}
+
+function showAdminPage(pageId) {
+  if(pageId==='admin-login') {
+    document.getElementById('page-admin-login').classList.add('active');
+    document.getElementById('adminLayout').style.display = 'none';
+    document.getElementById('bottomTabBar').style.display = 'none';
+  } else {
+    document.getElementById('page-admin-login').classList.remove('active');
+    document.getElementById('adminLayout').style.display = 'flex';
+    document.getElementById('bottomTabBar').style.display = 'flex';
+    document.querySelectorAll('#adminLayout .page').forEach(p=>p.classList.remove('active'));
+    const target = document.getElementById('page-admin-'+pageId);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.sidebar .menu-item').forEach(m=>m.classList.remove('active'));
+    document.querySelectorAll('.sidebar .menu-item').forEach(m=>{ if(m.getAttribute('data-page')===pageId) m.classList.add('active'); });
+  }
+  document.querySelectorAll('.bt-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.bt-tab').forEach(b=>{ if(b.textContent===adminPages.find(p=>p.id===pageId)?.label) b.classList.add('active'); });
+}
+
+// ========== Switch Toggle ==========
+function toggleSwitch(el, name) {
+  el.classList.toggle('on');
+  const isOn = el.classList.contains('on');
+  showToast(name + (isOn ? ' 已开启' : ' 已关闭'), isOn ? 'success' : 'warning');
+}
+
+// ========== Pagination ==========
+function switchPage(el) {
+  el.parentElement.querySelectorAll('.page-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  showToast('切换到第 ' + el.textContent + ' 页', 'info');
+}
+
+// ========== User Management Table ==========
+const userData = [
+  {id:'10001',name:'陈经理',dept:'技术部',position:'技术总监',phone:'138****8001',role:'管理员',status:'正常',date:'2025-01-01'},
+  {id:'10002',name:'刘思彤',dept:'技术部',position:'高级开发工程师',phone:'139****8002',role:'普通用户',status:'正常',date:'2025-03-15'},
+  {id:'10003',name:'张三',dept:'技术部',position:'前端开发工程师',phone:'137****8003',role:'普通用户',status:'正常',date:'2025-06-01'},
+  {id:'20001',name:'周总监',dept:'市场部',position:'市场总监',phone:'136****9001',role:'管理员',status:'正常',date:'2025-01-01'},
+  {id:'20002',name:'李四',dept:'市场部',position:'市场专员',phone:'135****9002',role:'普通用户',status:'正常',date:'2025-08-20'},
+  {id:'30001',name:'吴经理',dept:'销售部',position:'销售经理',phone:'133****7001',role:'普通用户',status:'正常',date:'2025-02-10'},
+  {id:'10004',name:'赵六',dept:'技术部',position:'后端开发工程师',phone:'131****8004',role:'普通用户',status:'禁用',date:'2025-09-01'},
+];
+let selectedUsers = new Set();
+
+function renderUserTable(data) {
+  const tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = '';
+  data.forEach(u => {
+    const tr = document.createElement('tr');
+    if(selectedUsers.has(u.id)) tr.classList.add('selected');
+    tr.innerHTML = `
+      <td><input type="checkbox" class="checkbox" ${selectedUsers.has(u.id)?'checked':''} onchange="toggleUserSelect('${u.id}',this)" /></td>
+      <td>${u.id}</td><td>${u.name}</td><td>${u.dept}</td><td>${u.position}</td><td>${u.phone}</td><td>${u.role}</td>
+      <td><span class="status-tag ${u.status==='正常'?'tag-active':'tag-inactive'}">${u.status}</span></td><td>${u.date}</td>
+      <td><span class="action-link" onclick="showUserFormModal('${u.name}','${u.id}')">编辑</span> <span class="action-link" onclick="showConfirm('确定重置 ${u.name} 的密码吗？',()=>showToast('密码已重置为默认密码','success'))">重置密码</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('userPagInfo').textContent = '共 ' + data.length + ' 条记录';
+  updateBatchBar();
+}
+
+function filterUserTable() {
+  const kw = document.getElementById('userSearch').value.toLowerCase();
+  const dept = document.getElementById('userDept').value;
+  const status = document.getElementById('userStatus').value;
+  let filtered = userData.filter(u => {
+    if(kw && !u.name.toLowerCase().includes(kw) && !u.phone.includes(kw) && !u.id.includes(kw)) return false;
+    if(dept && u.dept !== dept) return false;
+    if(status && u.status !== status) return false;
+    return true;
+  });
+  renderUserTable(filtered);
+}
+
+function resetUserFilter() {
+  document.getElementById('userSearch').value = '';
+  document.getElementById('userDept').value = '';
+  document.getElementById('userStatus').value = '';
+  renderUserTable(userData);
+  showToast('筛选条件已重置','info');
+}
+
+function toggleAllUsers(el) {
+  const kw = document.getElementById('userSearch').value.toLowerCase();
+  const dept = document.getElementById('userDept').value;
+  const status = document.getElementById('userStatus').value;
+  let filtered = userData.filter(u => {
+    if(kw && !u.name.toLowerCase().includes(kw) && !u.phone.includes(kw) && !u.id.includes(kw)) return false;
+    if(dept && u.dept !== dept) return false;
+    if(status && u.status !== status) return false;
+    return true;
+  });
+  if(el.checked) filtered.forEach(u=>selectedUsers.add(u.id)); else filtered.forEach(u=>selectedUsers.delete(u.id));
+  renderUserTable(filtered);
+}
+
+function toggleUserSelect(id, el) {
+  if(el.checked) selectedUsers.add(id); else selectedUsers.delete(id);
+  renderUserTable(getFilteredUsers());
+}
+
+function clearUserSelection() { selectedUsers.clear(); renderUserTable(getFilteredUsers()); }
+
+function updateBatchBar() {
+  const bar = document.getElementById('userBatchBar');
+  const cnt = document.getElementById('userSelectCount');
+  if(selectedUsers.size > 0) { bar.classList.add('show'); cnt.textContent = selectedUsers.size; }
+  else bar.classList.remove('show');
+}
+
+function getFilteredUsers() {
+  const kw = document.getElementById('userSearch').value.toLowerCase();
+  const dept = document.getElementById('userDept').value;
+  const status = document.getElementById('userStatus').value;
+  return userData.filter(u => {
+    if(kw && !u.name.toLowerCase().includes(kw) && !u.phone.includes(kw) && !u.id.includes(kw)) return false;
+    if(dept && u.dept !== dept) return false;
+    if(status && u.status !== status) return false;
+    return true;
+  });
+}
+
+renderUserTable(userData);
+
+// ========== Form Modals ==========
+function showUserFormModal(name, id) {
+  const isEdit = !!name;
+  showModal(isEdit?'编辑用户':'新增用户', `
+    <div class="form-grid">
+      <div class="form-item"><label>工号</label><input value="${id||''}" ${isEdit?'readonly style="background:#f9fafb"':''} placeholder="系统自动生成" /></div>
+      <div class="form-item"><label>姓名<span class="required">*</span></label><input value="${name||''}" placeholder="请输入姓名" /></div>
+      <div class="form-item"><label>部门<span class="required">*</span></label><select><option>技术部</option><option>市场部</option><option>销售部</option><option>行政部</option><option>财务部</option></select></div>
+      <div class="form-item"><label>职位<span class="required">*</span></label><input placeholder="请输入职位" /></div>
+      <div class="form-item"><label>手机号<span class="required">*</span></label><input placeholder="请输入手机号" /></div>
+      <div class="form-item"><label>邮箱</label><input placeholder="请输入邮箱" /></div>
+      <div class="form-item"><label>角色</label><select><option>普通用户</option><option>管理员</option></select></div>
+      <div class="form-item"><label>状态</label><select><option>正常</option><option>禁用</option></select></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('${isEdit?'用户信息已更新':'用户创建成功'}','success')">保存</button>`);
+}
+
+function showImportModal() {
+  showModal('导入用户', `
+    <div style="text-align:center;padding:20px;">
+      <div style="width:80px;height:80px;background:#f3f4f6;border-radius:12px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;">&#128196;</div>
+      <p style="font-size:14px;color:#374151;margin-bottom:4px;">将Excel文件拖拽到此处</p>
+      <p style="font-size:12px;color:#9ca3af;margin-bottom:16px;">或点击选择文件（支持 .xlsx, .xls）</p>
+      <button class="btn" onclick="showToast('请选择文件','info')">选择文件</button>
+      <p style="font-size:12px;color:#4f46e5;margin-top:12px;cursor:pointer;" onclick="showToast('模板下载中...','info')">&#128229; 下载导入模板</p>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('导入成功，共导入5条数据','success')">确认导入</button>`, '450px');
+}
+
+// ========== Approval ==========
+function switchApprovalTab(el, status) {
+  el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.approval-row').forEach(r => {
+    r.style.display = (status==='all' || r.getAttribute('data-status')===status) ? '' : 'none';
+  });
+}
+
+function showApprovalModal(id, name, title) {
+  showModal('审批 - ' + title, `
+    <div class="detail-card" style="margin-bottom:0;">
+      <h3>申请信息</h3>
+      <div class="form-grid">
+        <div class="form-item"><label>审批编号</label><div class="fi-value">${id}</div></div>
+        <div class="form-item"><label>申请人</label><div class="fi-value">${name}</div></div>
+        <div class="form-item"><label>申请时间</label><div class="fi-value">2026-05-11 09:15</div></div>
+        <div class="form-item"><label>审批状态</label><div class="fi-value"><span class="status-tag tag-pending">待审批</span></div></div>
+      </div>
+      <div style="margin-top:16px;"><label style="display:block;font-size:13px;color:#374151;margin-bottom:6px;font-weight:500;">申请事由</label><div class="fi-value">因个人事务需要请假，请批准。</div></div>
+      <div style="margin-top:16px;"><label style="display:block;font-size:13px;color:#374151;margin-bottom:6px;font-weight:500;">审批意见</label><textarea placeholder="请输入审批意见..." style="width:100%;height:80px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">暂不处理</button><button class="btn btn-danger" onclick="closeModal();showToast('已拒绝','error')">拒绝</button><button class="btn btn-success" onclick="closeModal();showToast('审批通过！','success')">通过</button>`);
+}
+
+function showApprovalDetail(id, name, title, status) {
+  showModal('审批详情 - ' + title, `
+    <div class="detail-card" style="margin-bottom:0;">
+      <h3>审批流程</h3>
+      <div style="display:flex;gap:0;align-items:center;margin-bottom:20px;">
+        <div style="text-align:center;"><div style="width:36px;height:36px;background:#4f46e5;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">${name[0]}</div><div style="font-size:11px;">${name}</div><div style="font-size:10px;color:#9ca3af;">发起</div></div>
+        <div style="flex:1;height:2px;background:#4f46e5;margin:0 8px;margin-bottom:24px;"></div>
+        <div style="text-align:center;"><div style="width:36px;height:36px;background:#4f46e5;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">陈</div><div style="font-size:11px;">陈经理</div><div style="font-size:10px;color:#10b981;">已通过</div></div>
+        <div style="flex:1;height:2px;background:#4f46e5;margin:0 8px;margin-bottom:24px;"></div>
+        <div style="text-align:center;"><div style="width:36px;height:36px;background:${status==='已通过'?'#10b981':'#d1d5db'};border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">&#10004;</div><div style="font-size:11px;">完成</div><div style="font-size:10px;color:${status==='已通过'?'#10b981':'#ef4444'};">${status}</div></div>
+      </div>
+      <div class="form-grid"><div class="form-item"><label>审批编号</label><div class="fi-value">${id}</div></div><div class="form-item"><label>申请人</label><div class="fi-value">${name}</div></div><div class="form-item full-width"><label>申请事由</label><div class="fi-value">因项目紧急需要加班处理。</div></div></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+// ========== Detail Modals ==========
+function showAttendanceDetail(name) {
+  showModal('考勤详情 - ' + name, `<div class="form-grid"><div class="form-item"><label>姓名</label><div class="fi-value">${name}</div></div><div class="form-item"><label>日期</label><div class="fi-value">2026-05-11</div></div><div class="form-item"><label>上班打卡</label><div class="fi-value">08:52</div></div><div class="form-item"><label>下班打卡</label><div class="fi-value">18:30</div></div><div class="form-item"><label>工时</label><div class="fi-value">9.63h</div></div><div class="form-item"><label>状态</label><div class="fi-value"><span class="status-tag tag-active">正常</span></div></div><div class="form-item full-width"><label>打卡地点</label><div class="fi-value">公司总部 - 3楼办公区</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showPersonnelDetail(name) {
+  showModal('员工详情 - ' + name, `<div class="form-grid"><div class="form-item"><label>姓名</label><div class="fi-value">${name}</div></div><div class="form-item"><label>工号</label><div class="fi-value">10002</div></div><div class="form-item"><label>部门</label><div class="fi-value">技术部</div></div><div class="form-item"><label>职位</label><div class="fi-value">高级开发工程师</div></div><div class="form-item"><label>入职日期</label><div class="fi-value">2025-03-15</div></div><div class="form-item"><label>合同到期</label><div class="fi-value">2028-03-15</div></div><div class="form-item"><label>手机号</label><div class="fi-value">139****8002</div></div><div class="form-item"><label>邮箱</label><div class="fi-value">lst@company.com</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showMeetingDetail(title) {
+  showModal('会议详情', `<div class="form-grid"><div class="form-item full-width"><label>会议主题</label><div class="fi-value">${title}</div></div><div class="form-item"><label>会议室</label><div class="fi-value">会议室A</div></div><div class="form-item"><label>组织者</label><div class="fi-value">陈经理</div></div><div class="form-item"><label>开始时间</label><div class="fi-value">2026-05-11 10:00</div></div><div class="form-item"><label>结束时间</label><div class="fi-value">2026-05-11 11:30</div></div><div class="form-item full-width"><label>参会人员</label><div class="fi-value">陈经理、刘思彤、张三、赵六、周总监、李四、王五、吴经理</div></div><div class="form-item full-width"><label>会议议程</label><div class="fi-value">1. 上周工作回顾<br>2. 本周工作计划<br>3. 问题讨论与协调</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showTaskDetail(title) {
+  showModal('任务详情', `<div class="form-grid"><div class="form-item full-width"><label>任务名称</label><div class="fi-value">${title}</div></div><div class="form-item"><label>所属项目</label><div class="fi-value">智能OA系统</div></div><div class="form-item"><label>负责人</label><div class="fi-value">刘思彤</div></div><div class="form-item"><label>优先级</label><div class="fi-value" style="color:#ef4444;">高</div></div><div class="form-item"><label>截止日期</label><div class="fi-value">2026-05-11</div></div><div class="form-item full-width"><label>任务描述</label><div class="fi-value">完成数据库16张核心表的设计，包括用户表、考勤表、审批表等。</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showProjectDetail(name) {
+  showModal('项目详情 - ' + name, `<div class="form-grid"><div class="form-item full-width"><label>项目名称</label><div class="fi-value">${name}</div></div><div class="form-item"><label>负责人</label><div class="fi-value">陈经理</div></div><div class="form-item"><label>参与部门</label><div class="fi-value">技术部</div></div><div class="form-item"><label>开始日期</label><div class="fi-value">2026-04-01</div></div><div class="form-item"><label>截止日期</label><div class="fi-value">2026-07-30</div></div><div class="form-item"><label>当前进度</label><div class="fi-value" style="color:#4f46e5;font-weight:600;">65%</div></div><div class="form-item full-width"><label>项目描述</label><div class="fi-value">开发一套智能OA办公系统，包含移动端、管理后台和接口服务。</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showPerformanceDetail(name) {
+  const scores = {刘思彤:[95,90,88,92,'A','#4f46e5'],张三:[82,85,90,85,'B','#10b981'],赵六:[78,80,85,80,'C','#f59e0b']};
+  const s = scores[name]||[0,0,0,0,'-','#999'];
+  showModal('绩效详情 - ' + name, `
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:48px;font-weight:700;color:${s[4]}">${s[3]}</div>
+      <div style="font-size:14px;color:#6b7280;margin-top:4px;">综合得分</div>
+      <div style="display:inline-block;padding:4px 16px;border-radius:12px;font-size:18px;font-weight:700;color:${s[4]};background:${s[4]}15;margin-top:8px;">等级 ${s[4]}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;">
+      <div><div style="font-size:24px;font-weight:600;">${s[0]}</div><div style="font-size:12px;color:#9ca3af;">工作业绩</div></div>
+      <div><div style="font-size:24px;font-weight:600;">${s[1]}</div><div style="font-size:12px;color:#9ca3af;">工作态度</div></div>
+      <div><div style="font-size:24px;font-weight:600;">${s[2]}</div><div style="font-size:12px;color:#9ca3af;">团队协作</div></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">关闭</button>`, '400px');
+}
+
+function showSalaryDetail(name) {
+  const data = {陈经理:{base:'15,000',allow:'5,000',bonus:'4,000',ins:'1,500',fund:'1,000',tax:'890',total:'20,610'},刘思彤:{base:'12,000',allow:'3,000',bonus:'2,500',ins:'1,200',fund:'800',tax:'520',total:'18,500'},张三:{base:'10,000',allow:'2,000',bonus:'1,800',ins:'1,000',fund:'667',tax:'380',total:'13,690'}};
+  const d = data[name]||{};
+  showModal('工资条 - ' + name + ' (2026年4月)', `
+    <div class="form-grid">
+      <div class="form-item"><label>基本工资</label><div class="fi-value">¥${d.base}</div></div><div class="form-item"><label>岗位津贴</label><div class="fi-value">¥${d.allow}</div></div>
+      <div class="form-item"><label>绩效奖金</label><div class="fi-value">¥${d.bonus}</div></div><div class="form-item"><label>社保扣除</label><div class="fi-value" style="color:#ef4444;">-¥${d.ins}</div></div>
+      <div class="form-item"><label>公积金扣除</label><div class="fi-value" style="color:#ef4444;">-¥${d.fund}</div></div><div class="form-item"><label>个税</label><div class="fi-value" style="color:#ef4444;">-¥${d.tax}</div></div>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:#f0fdf4;border-radius:8px;text-align:center;"><span style="font-size:14px;color:#374151;">实发工资：</span><span style="font-size:24px;font-weight:700;color:#059669;">¥${d.total}</span></div>
+  `, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showAssetDetail(name) {
+  showModal('资产详情 - ' + name, `<div class="form-grid"><div class="form-item"><label>资产名称</label><div class="fi-value">${name}</div></div><div class="form-item"><label>资产编号</label><div class="fi-value">A20260101</div></div><div class="form-item"><label>分类</label><div class="fi-value">电脑</div></div><div class="form-item"><label>使用人</label><div class="fi-value">刘思彤</div></div><div class="form-item"><label>购入日期</label><div class="fi-value">2026-01-15</div></div><div class="form-item"><label>原值</label><div class="fi-value">¥16,999</div></div><div class="form-item"><label>状态</label><div class="fi-value"><span class="status-tag tag-using">使用中</span></div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showHandoverDetail(title) {
+  showModal('交接详情', `<div class="form-grid"><div class="form-item full-width"><label>交接标题</label><div class="fi-value">${title}</div></div><div class="form-item"><label>交接人</label><div class="fi-value">刘思彤</div></div><div class="form-item"><label>接收人</label><div class="fi-value">张三</div></div><div class="form-item full-width"><label>交接内容</label><div class="fi-value">1. OA系统前端代码仓库权限<br>2. 前端技术文档和设计稿<br>3. 第三方服务账号和配置</div></div><div class="form-item full-width"><label>备注</label><div class="fi-value">预计5月15日前完成全部交接。</div></div></div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showAnnounceDetail(title) {
+  showModal('公告详情', `<h3 style="font-size:16px;margin-bottom:12px;">${title}</h3><div style="display:flex;gap:16px;font-size:12px;color:#9ca3af;margin-bottom:16px;"><span>发布人: 行政部</span><span>发布时间: 2026-05-11</span><span>阅读: 128次</span></div><div style="font-size:14px;color:#374151;line-height:1.8;">根据国务院办公厅通知，2026年端午节放假安排如下：<br><br>5月30日（周六）至6月1日（周一）放假调休，共3天。<br>5月31日（周日）上班。<br><br>请各部门提前做好工作安排，确保假期期间各项工作正常运转。如有紧急事务，请联系值班人员。</div>`, `<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function showProcessDesigner(code) {
+  showModal('流程设计器 - ' + code, `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="display:inline-flex;gap:0;align-items:center;">
+        <div style="text-align:center;"><div style="width:48px;height:48px;background:#4f46e5;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">发起</div><div style="font-size:11px;">申请人</div></div>
+        <div style="width:60px;height:2px;background:#4f46e5;margin:0 4px;margin-bottom:20px;"></div>
+        <div style="text-align:center;"><div style="width:48px;height:48px;background:#f59e0b;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">审核</div><div style="font-size:11px;">部门主管</div></div>
+        <div style="width:60px;height:2px;background:#f59e0b;margin:0 4px;margin-bottom:20px;"></div>
+        <div style="text-align:center;"><div style="width:48px;height:48px;background:#f59e0b;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">审核</div><div style="font-size:11px;">部门总监</div></div>
+        <div style="width:60px;height:2px;background:#10b981;margin:0 4px;margin-bottom:20px;"></div>
+        <div style="text-align:center;"><div style="width:48px;height:48px;background:#10b981;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">结束</div><div style="font-size:11px;">完成</div></div>
+      </div>
+      <p style="font-size:12px;color:#9ca3af;margin-top:16px;">点击节点可编辑审批条件和人员配置</p>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('流程保存成功','success')">保存</button>`, '550px');
+}
+
+function showShareModal() {
+  showModal('分享文件', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>分享方式</label><select><option>链接分享</option><option>指定人员</option><option>部门分享</option></select></div>
+      <div class="form-item full-width"><label>有效期</label><select><option>7天</option><option>30天</option><option>永久</option></select></div>
+      <div class="form-item full-width"><label>权限</label><select><option>仅查看</option><option>可下载</option><option>可编辑</option></select></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('分享链接已复制','success')">生成链接</button>`, '400px');
+}
+
+function showUploadModal() {
+  showModal('上传文档', `
+    <div style="text-align:center;padding:20px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;" onclick="showToast('请选择文件','info')">
+      <div style="font-size:36px;margin-bottom:8px;">&#128194;</div>
+      <p style="font-size:14px;color:#374151;">点击或拖拽文件到此区域</p>
+      <p style="font-size:12px;color:#9ca3af;margin-top:4px;">支持 Word/Excel/PDF/PPT，单文件不超过50MB</p>
+    </div>
+    <div class="form-item" style="margin-top:16px;"><label>所属目录</label><select><option>技术部</option><option>人事部</option><option>项目文档</option><option>公司制度</option></select></div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('文件上传成功','success')">开始上传</button>`);
+}
+
+// ========== Generic Form Modals ==========
+function showPersonnelFormModal() {
+  showModal('新增员工', `
+    <div class="form-grid">
+      <div class="form-item"><label>姓名<span class="required">*</span></label><input placeholder="请输入姓名" /></div>
+      <div class="form-item"><label>性别<span class="required">*</span></label><select><option>男</option><option>女</option></select></div>
+      <div class="form-item"><label>部门<span class="required">*</span></label><select><option>技术部</option><option>市场部</option><option>销售部</option><option>行政部</option><option>财务部</option></select></div>
+      <div class="form-item"><label>职位<span class="required">*</span></label><input placeholder="请输入职位" /></div>
+      <div class="form-item"><label>手机号<span class="required">*</span></label><input placeholder="请输入手机号" /></div>
+      <div class="form-item"><label>邮箱</label><input placeholder="请输入邮箱" /></div>
+      <div class="form-item"><label>入职日期<span class="required">*</span></label><input type="date" value="2026-05-11" /></div>
+      <div class="form-item"><label>合同到期</label><input type="date" value="2029-05-11" /></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('员工添加成功','success')">保存</button>`);
+}
+
+function showMeetingFormModal() {
+  showModal('预约会议', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>会议主题<span class="required">*</span></label><input placeholder="请输入会议主题" /></div>
+      <div class="form-item"><label>会议室<span class="required">*</span></label><select><option>会议室A</option><option>会议室B</option><option>会议室C</option><option>线上会议</option></select></div>
+      <div class="form-item"><label>组织者</label><input value="刘思彤" readonly style="background:#f9fafb" /></div>
+      <div class="form-item"><label>开始时间<span class="required">*</span></label><input type="datetime-local" value="2026-05-11T14:00" /></div>
+      <div class="form-item"><label>结束时间<span class="required">*</span></label><input type="datetime-local" value="2026-05-11T15:00" /></div>
+      <div class="form-item full-width"><label>参会人员</label><input placeholder="请选择参会人员" /></div>
+      <div class="form-item full-width"><label>会议描述</label><textarea placeholder="请输入会议描述" style="width:100%;height:80px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('会议预约成功','success')">提交预约</button>`);
+}
+
+function showTaskFormModal() {
+  showModal('创建任务', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>任务名称<span class="required">*</span></label><input placeholder="请输入任务名称" /></div>
+      <div class="form-item"><label>所属项目<span class="required">*</span></label><select><option>智能OA系统</option><option>官网2.0改版</option><option>数据中台建设</option></select></div>
+      <div class="form-item"><label>负责人<span class="required">*</span></label><select><option>刘思彤</option><option>张三</option><option>赵六</option></select></div>
+      <div class="form-item"><label>优先级</label><select><option>高</option><option selected>中</option><option>低</option></select></div>
+      <div class="form-item"><label>截止日期<span class="required">*</span></label><input type="date" value="2026-05-15" /></div>
+      <div class="form-item full-width"><label>任务描述</label><textarea placeholder="请输入任务描述" style="width:100%;height:80px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('任务创建成功','success')">创建</button>`);
+}
+
+function showScheduleFormModal() {
+  showModal('新建日程', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>日程标题<span class="required">*</span></label><input placeholder="请输入日程标题" /></div>
+      <div class="form-item"><label>日期<span class="required">*</span></label><input type="date" value="2026-05-12" /></div>
+      <div class="form-item"><label>时间</label><div style="display:flex;gap:8px;"><input type="time" value="09:00" style="flex:1" /><span style="line-height:36px;color:#9ca3af;">至</span><input type="time" value="10:00" style="flex:1" /></div></div>
+      <div class="form-item full-width"><label>地点</label><input placeholder="请输入地点" /></div>
+      <div class="form-item full-width"><label>备注</label><textarea placeholder="请输入备注" style="width:100%;height:60px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('日程创建成功','success')">保存</button>`);
+}
+
+function showProjectFormModal() {
+  showModal('创建项目', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>项目名称<span class="required">*</span></label><input placeholder="请输入项目名称" /></div>
+      <div class="form-item"><label>负责人<span class="required">*</span></label><select><option>陈经理</option><option>周总监</option></select></div>
+      <div class="form-item"><label>参与部门</label><select><option>技术部</option><option>市场部</option><option>多部门</option></select></div>
+      <div class="form-item"><label>开始日期</label><input type="date" value="2026-05-15" /></div>
+      <div class="form-item"><label>截止日期</label><input type="date" value="2026-08-30" /></div>
+      <div class="form-item full-width"><label>项目描述</label><textarea placeholder="请输入项目描述" style="width:100%;height:80px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('项目创建成功','success')">创建</button>`);
+}
+
+function showAssetFormModal() {
+  showModal('资产登记', `
+    <div class="form-grid">
+      <div class="form-item"><label>资产名称<span class="required">*</span></label><input placeholder="请输入资产名称" /></div>
+      <div class="form-item"><label>资产分类<span class="required">*</span></label><select><option>电脑</option><option>手机</option><option>外设</option><option>设备</option><option>家具</option><option>其他</option></select></div>
+      <div class="form-item"><label>品牌型号</label><input placeholder="请输入品牌型号" /></div>
+      <div class="form-item"><label>购入日期</label><input type="date" value="2026-05-11" /></div>
+      <div class="form-item"><label>购入价格</label><input placeholder="请输入价格" /></div>
+      <div class="form-item"><label>供应商</label><input placeholder="请输入供应商" /></div>
+      <div class="form-item full-width"><label>备注</label><textarea placeholder="请输入备注" style="width:100%;height:60px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('资产登记成功','success')">保存</button>`);
+}
+
+function showHandoverFormModal() {
+  showModal('发起交接', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>交接标题<span class="required">*</span></label><input placeholder="请输入交接标题" /></div>
+      <div class="form-item"><label>接收人<span class="required">*</span></label><select><option>张三</option><option>赵六</option></select></div>
+      <div class="form-item"><label>计划完成日期</label><input type="date" value="2026-05-20" /></div>
+      <div class="form-item full-width"><label>交接内容<span class="required">*</span></label><textarea placeholder="请详细描述交接内容" style="width:100%;height:100px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('交接发起成功','success')">提交</button>`);
+}
+
+function showAnnounceFormModal() {
+  showModal('发布公告', `
+    <div class="form-grid">
+      <div class="form-item full-width"><label>公告标题<span class="required">*</span></label><input placeholder="请输入公告标题" /></div>
+      <div class="form-item"><label>公告类型</label><select><option>公司公告</option><option>部门通知</option><option>制度变更</option></select></div>
+      <div class="form-item"><label>发布范围</label><select><option>全员</option><option>技术部</option><option>市场部</option></select></div>
+      <div class="form-item full-width"><label>公告内容<span class="required">*</span></label><textarea placeholder="请输入公告内容" style="width:100%;height:120px;border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;outline:none;"></textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();showToast('公告发布成功','success')">发布</button>`);
+}
+
+function showEditSettingModal(title, elId, currentVal) {
+  showModal('修改 - ' + title, `<div class="form-item"><label>${title}</label><input id="settingInput" value="${currentVal}" /></div>`, `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="document.getElementById('${elId}').textContent=document.getElementById('settingInput').value;closeModal();showToast('修改成功','success')">保存</button>`, '400px');
+}
+</script>
+</body>
+</html>

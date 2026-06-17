@@ -1,0 +1,825 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model hr_employee_contract {
+  id                 BigInt    @id @default(autoincrement())
+  user_id            BigInt
+  contract_no        String    @unique(map: "uk_contract_no") @db.VarChar(30)
+  contract_type      String    @db.VarChar(20)
+  start_date         DateTime  @db.Date
+  end_date           DateTime  @db.Date
+  probation_months   Int?      @default(0)
+  probation_end_date DateTime? @db.Date
+  salary             Decimal?  @db.Decimal(10, 2)
+  status             String    @default("active") @db.VarChar(20)
+  sign_date          DateTime? @db.Date
+  terminate_date     DateTime? @db.Date
+  terminate_reason   String?   @db.VarChar(500)
+  attachment_url     String?   @db.VarChar(255)
+  remark             String?   @db.VarChar(500)
+  create_time        DateTime  @default(now()) @db.DateTime(0)
+  update_time        DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([status], map: "idx_status")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_announcement {
+  id            BigInt    @id @default(autoincrement())
+  title         String    @db.VarChar(100)
+  type          String    @db.VarChar(20)
+  scope         String    @default("all") @db.VarChar(20)
+  dept_ids      String?   @db.VarChar(500)
+  publisher_id  BigInt
+  content       String    @db.Text
+  attachments   String?   @db.VarChar(500)
+  view_count    Int       @default(0)
+  status        String    @default("draft") @db.VarChar(20)
+  publish_time  DateTime? @db.DateTime(0)
+  withdraw_time DateTime? @db.DateTime(0)
+  top           Int       @default(0) @db.TinyInt
+  create_time   DateTime  @default(now()) @db.DateTime(0)
+  update_time   DateTime  @default(now()) @db.DateTime(0)
+  is_deleted    Int       @default(0) @db.TinyInt
+
+  @@index([publish_time], map: "idx_publish_time")
+  @@index([publisher_id], map: "idx_publisher_id")
+  @@index([status], map: "idx_status")
+  @@index([top], map: "idx_top")
+  @@index([type], map: "idx_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_announcement_read {
+  id              BigInt   @id @default(autoincrement())
+  announcement_id BigInt
+  user_id         BigInt
+  read_time       DateTime @default(now()) @db.DateTime(0)
+
+  @@unique([announcement_id, user_id], map: "uk_announcement_user")
+  @@index([announcement_id], map: "idx_announcement_id")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_approval {
+  id                  BigInt    @id @default(autoincrement())
+  approval_no         String    @unique(map: "uk_approval_no") @db.VarChar(30)
+  type                String    @db.VarChar(20)
+  title               String    @db.VarChar(100)
+  applicant_id        BigInt
+  dept_id             BigInt
+  content             String    @db.Text
+  template_id         BigInt?
+  current_node        String?   @db.VarChar(50)
+  current_approver_id BigInt?
+  status              String    @default("pending") @db.VarChar(20)
+  reject_reason       String?   @db.VarChar(500)
+  cancel_reason       String?   @db.VarChar(500)
+  approved_time       DateTime? @db.DateTime(0)
+  create_time         DateTime  @default(now()) @db.DateTime(0)
+  update_time         DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([applicant_id], map: "idx_applicant_id")
+  @@index([create_time], map: "idx_create_time")
+  @@index([current_approver_id], map: "idx_current_approver_id")
+  @@index([dept_id], map: "idx_dept_id")
+  @@index([status], map: "idx_status")
+  @@index([type], map: "idx_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_approval_flow {
+  id            BigInt    @id @default(autoincrement())
+  approval_id   BigInt
+  node_name     String    @db.VarChar(50)
+  node_order    Int
+  approver_id   BigInt?
+  approver_name String?   @db.VarChar(50)
+  approver_type String    @db.VarChar(20)
+  role_id       BigInt?
+  status        String    @default("pending") @db.VarChar(20)
+  opinion       String?   @db.VarChar(500)
+  handle_time   DateTime? @db.DateTime(0)
+  create_time   DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([approval_id], map: "idx_approval_id")
+  @@index([approver_id], map: "idx_approver_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_asset {
+  id                BigInt    @id @default(autoincrement())
+  asset_no          String    @unique(map: "uk_asset_no") @db.VarChar(30)
+  asset_name        String    @db.VarChar(100)
+  category          String    @db.VarChar(20)
+  brand             String?   @db.VarChar(50)
+  model             String?   @db.VarChar(50)
+  specification     String?   @db.VarChar(200)
+  user_id           BigInt?
+  purchase_date     DateTime  @db.Date
+  original_value    Decimal   @db.Decimal(10, 2)
+  current_value     Decimal?  @db.Decimal(10, 2)
+  depreciation_rate Decimal?  @default(0.00) @db.Decimal(5, 2)
+  status            String    @default("idle") @db.VarChar(20)
+  location          String?   @db.VarChar(100)
+  sn_code           String?   @db.VarChar(50)
+  warranty_end_date DateTime? @db.Date
+  image_url         String?   @db.VarChar(255)
+  remark            String?   @db.VarChar(500)
+  create_time       DateTime  @default(now()) @db.DateTime(0)
+  update_time       DateTime  @default(now()) @db.DateTime(0)
+  is_deleted        Int       @default(0) @db.TinyInt
+
+  @@index([category], map: "idx_category")
+  @@index([status], map: "idx_status")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_asset_record {
+  id                   BigInt    @id @default(autoincrement())
+  asset_id             BigInt
+  user_id              BigInt
+  type                 String    @db.VarChar(20)
+  borrow_date          DateTime  @db.DateTime(0)
+  return_date          DateTime? @db.DateTime(0)
+  expected_return_date DateTime? @db.Date
+  status               String    @default("active") @db.VarChar(20)
+  remark               String?   @db.VarChar(500)
+  create_time          DateTime  @default(now()) @db.DateTime(0)
+  update_time          DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([asset_id], map: "idx_asset_id")
+  @@index([status], map: "idx_status")
+  @@index([type], map: "idx_type")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_attendance {
+  id                  BigInt    @id @default(autoincrement())
+  user_id             BigInt
+  attend_date         DateTime  @db.Date
+  clock_in_time       DateTime? @db.Time(0)
+  clock_out_time      DateTime? @db.Time(0)
+  work_hours          Decimal?  @default(0.00) @db.Decimal(4, 2)
+  clock_in_location   String?   @db.VarChar(100)
+  clock_out_location  String?   @db.VarChar(100)
+  clock_in_latitude   Decimal?  @db.Decimal(10, 6)
+  clock_in_longitude  Decimal?  @db.Decimal(10, 6)
+  clock_out_latitude  Decimal?  @db.Decimal(10, 6)
+  clock_out_longitude Decimal?  @db.Decimal(10, 6)
+  clock_in_device     String?   @db.VarChar(50)
+  clock_out_device    String?   @db.VarChar(50)
+  status                    String    @default("absent") @db.VarChar(20)
+  remark                    String?   @db.VarChar(500)
+  is_fieldwork              Boolean?  @default(false)
+  fieldwork_review_status   String?   @db.VarChar(20)
+  fieldwork_reviewer_id     BigInt?
+  fieldwork_review_time     DateTime? @db.DateTime(0)
+  fieldwork_review_remark   String?   @db.VarChar(500)
+  create_time               DateTime  @default(now()) @db.DateTime(0)
+  update_time               DateTime  @default(now()) @db.DateTime(0)
+
+  @@unique([user_id, attend_date], map: "uk_user_date")
+  @@index([attend_date], map: "idx_attend_date")
+  @@index([create_time], map: "idx_create_time")
+  @@index([status], map: "idx_status")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_document {
+  id             BigInt   @id @default(autoincrement())
+  doc_name       String   @db.VarChar(100)
+  doc_type       String   @db.VarChar(20)
+  file_size      BigInt?  @default(0)
+  file_url       String   @db.VarChar(255)
+  folder_id      BigInt?  @default(0)
+  uploader_id    BigInt
+  scope          String   @default("personal") @db.VarChar(20)
+  dept_ids       String?  @db.VarChar(500)
+  download_count Int      @default(0)
+  view_count     Int      @default(0)
+  remark         String?  @db.VarChar(500)
+  create_time    DateTime @default(now()) @db.DateTime(0)
+  update_time    DateTime @default(now()) @db.DateTime(0)
+  is_deleted     Int      @default(0) @db.TinyInt
+
+  @@index([folder_id], map: "idx_folder_id")
+  @@index([scope], map: "idx_scope")
+  @@index([uploader_id], map: "idx_uploader_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_handover {
+  id            BigInt    @id @default(autoincrement())
+  handover_no   String    @unique(map: "uk_handover_no") @db.VarChar(30)
+  title         String    @db.VarChar(100)
+  initiator_id  BigInt
+  receiver_id   BigInt
+  content       String    @db.Text
+  attachments   String?   @db.VarChar(500)
+  progress      Int       @default(0)
+  status        String    @default("pending") @db.VarChar(20)
+  confirm_time  DateTime? @db.DateTime(0)
+  complete_time DateTime? @db.DateTime(0)
+  cancel_reason String?   @db.VarChar(500)
+  create_time   DateTime  @default(now()) @db.DateTime(0)
+  update_time   DateTime  @default(now()) @db.DateTime(0)
+  is_deleted    Int       @default(0) @db.TinyInt
+
+  @@index([initiator_id], map: "idx_initiator_id")
+  @@index([receiver_id], map: "idx_receiver_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_meeting {
+  id                   BigInt   @id @default(autoincrement())
+  meeting_no           String   @unique(map: "uk_meeting_no") @db.VarChar(30)
+  title                String   @db.VarChar(100)
+  organizer_id         BigInt
+  room_id              BigInt?
+  room_name            String?  @db.VarChar(50)
+  start_time           DateTime @db.DateTime(0)
+  end_time             DateTime @db.DateTime(0)
+  attendees            String?  @db.Text
+  status               String   @default("upcoming") @db.VarChar(20)
+  minutes              String?  @db.Text
+  cancel_reason        String?  @db.VarChar(500)
+  external_meeting_id  String?  @db.VarChar(100)
+  external_meeting_url String?  @db.VarChar(500)
+  external_platform    String?  @db.VarChar(20)
+  create_time          DateTime @default(now()) @db.DateTime(0)
+  update_time          DateTime @default(now()) @db.DateTime(0)
+  is_deleted           Int      @default(0) @db.TinyInt
+
+  @@index([organizer_id], map: "idx_organizer_id")
+  @@index([start_time], map: "idx_start_time")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_process_template {
+  id            BigInt   @id @default(autoincrement())
+  template_code String   @unique(map: "uk_template_code") @db.VarChar(20)
+  template_name String   @db.VarChar(50)
+  type          String   @db.VarChar(20)
+  scope         String   @default("all") @db.VarChar(20)
+  dept_ids      String?  @db.VarChar(500)
+  nodes         String   @db.Text
+  form_fields   String?  @db.Text
+  status        Int      @default(1) @db.TinyInt
+  sort          Int?     @default(0)
+  create_time   DateTime @default(now()) @db.DateTime(0)
+  update_time   DateTime @default(now()) @db.DateTime(0)
+  is_deleted    Int      @default(0) @db.TinyInt
+
+  @@index([status], map: "idx_status")
+  @@index([type], map: "idx_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_project {
+  id           BigInt    @id @default(autoincrement())
+  project_no   String    @unique(map: "uk_project_no") @db.VarChar(30)
+  project_name String    @db.VarChar(100)
+  description  String?   @db.Text
+  manager_id   BigInt?
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  progress     Int?      @default(0)
+  status       String    @default("pending") @db.VarChar(20)
+  priority     String    @default("medium") @db.VarChar(20)
+  create_time  DateTime  @default(now()) @db.DateTime(0)
+  update_time  DateTime  @default(now()) @db.DateTime(0)
+  is_deleted   Int       @default(0) @db.TinyInt
+
+  @@index([manager_id], map: "idx_manager_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_salary {
+  id                  BigInt    @id @default(autoincrement())
+  user_id             BigInt
+  month               String    @db.VarChar(7)
+  base_salary         Decimal   @default(0.00) @db.Decimal(10, 2)
+  position_allowance  Decimal   @default(0.00) @db.Decimal(10, 2)
+  performance_bonus   Decimal   @default(0.00) @db.Decimal(10, 2)
+  meal_allowance      Decimal?  @default(0.00) @db.Decimal(10, 2)
+  transport_allowance Decimal?  @default(0.00) @db.Decimal(10, 2)
+  housing_allowance   Decimal?  @default(0.00) @db.Decimal(10, 2)
+  overtime_pay        Decimal?  @default(0.00) @db.Decimal(10, 2)
+  other_income        Decimal?  @default(0.00) @db.Decimal(10, 2)
+  social_security     Decimal   @default(0.00) @db.Decimal(10, 2)
+  housing_fund        Decimal   @default(0.00) @db.Decimal(10, 2)
+  income_tax          Decimal   @default(0.00) @db.Decimal(10, 2)
+  other_deduction     Decimal?  @default(0.00) @db.Decimal(10, 2)
+  net_salary          Decimal   @default(0.00) @db.Decimal(10, 2)
+  status              String    @default("draft") @db.VarChar(20)
+  paid_time           DateTime? @db.DateTime(0)
+  create_time         DateTime  @default(now()) @db.DateTime(0)
+  update_time         DateTime  @default(now()) @db.DateTime(0)
+
+  @@unique([user_id, month], map: "uk_user_month")
+  @@index([month], map: "idx_month")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_schedule {
+  id             BigInt   @id @default(autoincrement())
+  title          String   @db.VarChar(100)
+  description    String?  @db.VarChar(500)
+  user_id        BigInt
+  start_time     DateTime @db.DateTime(0)
+  end_time       DateTime @db.DateTime(0)
+  location       String?  @db.VarChar(100)
+  type           String   @default("personal") @db.VarChar(20)
+  attendees      String?  @db.Text
+  remind_minutes Int?     @default(0)
+  reminded       Int      @default(0) @db.TinyInt
+  create_time    DateTime @default(now()) @db.DateTime(0)
+  update_time    DateTime @default(now()) @db.DateTime(0)
+  is_deleted     Int      @default(0) @db.TinyInt
+
+  @@index([start_time], map: "idx_start_time")
+  @@index([type], map: "idx_type")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_task {
+  id             BigInt    @id @default(autoincrement())
+  task_no        String    @unique(map: "uk_task_no") @db.VarChar(30)
+  title          String    @db.VarChar(100)
+  description    String?   @db.Text
+  project_id     BigInt?
+  assignee_id    BigInt
+  creator_id     BigInt
+  priority       String    @default("medium") @db.VarChar(20)
+  due_date       DateTime? @db.Date
+  progress       Int?      @default(0)
+  status         String    @default("pending") @db.VarChar(20)
+  completed_time DateTime? @db.DateTime(0)
+  create_time    DateTime  @default(now()) @db.DateTime(0)
+  update_time    DateTime  @default(now()) @db.DateTime(0)
+  is_deleted     Int       @default(0) @db.TinyInt
+
+  @@index([assignee_id], map: "idx_assignee_id")
+  @@index([creator_id], map: "idx_creator_id")
+  @@index([due_date], map: "idx_due_date")
+  @@index([project_id], map: "idx_project_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_config {
+  id           BigInt   @id @default(autoincrement())
+  config_key   String   @unique(map: "uk_config_key") @db.VarChar(50)
+  config_value String?  @db.Text
+  config_type  String?  @default("string") @db.VarChar(20)
+  description  String?  @db.VarChar(200)
+  group_name   String?  @db.VarChar(50)
+  create_time  DateTime @default(now()) @db.DateTime(0)
+  update_time  DateTime @default(now()) @db.DateTime(0)
+
+  @@index([group_name], map: "idx_group_name")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_department {
+  id          BigInt     @id @default(autoincrement())
+  dept_code   String     @unique(map: "uk_dept_code") @db.VarChar(20)
+  dept_name   String     @db.VarChar(50)
+  parent_id   BigInt?    @default(0)
+  level       Int        @default(1)
+  leader_id   BigInt?
+  sort        Int?       @default(0)
+  status      Int        @default(1) @db.TinyInt
+  remark      String?    @db.VarChar(500)
+  create_time DateTime   @default(now()) @db.DateTime(0)
+  update_time DateTime   @default(now()) @db.DateTime(0)
+  is_deleted  Int        @default(0) @db.TinyInt
+  sys_user    sys_user[]
+
+  @@index([is_deleted], map: "idx_is_deleted")
+  @@index([level], map: "idx_level")
+  @@index([parent_id], map: "idx_parent_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_message {
+  id           BigInt    @id @default(autoincrement())
+  sender_id    BigInt?
+  receiver_id  BigInt
+  type         String    @db.VarChar(20)
+  title        String    @db.VarChar(100)
+  content      String    @db.VarChar(500)
+  related_id   BigInt?
+  related_type String?   @db.VarChar(20)
+  is_read      Int       @default(0) @db.TinyInt
+  read_time    DateTime? @db.DateTime(0)
+  create_time  DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([create_time], map: "idx_create_time")
+  @@index([is_read], map: "idx_is_read")
+  @@index([receiver_id], map: "idx_receiver_id")
+  @@index([type], map: "idx_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_operation_log {
+  id             BigInt   @id @default(autoincrement())
+  user_id        BigInt
+  username       String?  @db.VarChar(50)
+  real_name      String?  @db.VarChar(50)
+  module         String?  @db.VarChar(50)
+  operation      String   @db.VarChar(50)
+  method         String?  @db.VarChar(100)
+  request_url    String?  @db.VarChar(200)
+  request_params String?  @db.Text
+  request_ip     String?  @db.VarChar(50)
+  ip_location    String?  @db.VarChar(100)
+  status         Int      @default(1) @db.TinyInt
+  error_msg      String?  @db.VarChar(500)
+  execute_time   Int?     @default(0)
+  create_time    DateTime @default(now()) @db.DateTime(0)
+
+  @@index([create_time], map: "idx_create_time")
+  @@index([module], map: "idx_module")
+  @@index([status], map: "idx_status")
+  @@index([user_id], map: "idx_user_id")
+  @@index([username], map: "idx_username")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_permission {
+  id                  BigInt                @id @default(autoincrement())
+  parent_id           BigInt?               @default(0)
+  permission_code     String                @unique(map: "uk_permission_code") @db.VarChar(50)
+  permission_name     String                @db.VarChar(50)
+  permission_type     String                @db.VarChar(20)
+  route_path          String?               @db.VarChar(200)
+  component_path      String?               @db.VarChar(200)
+  icon                String?               @db.VarChar(50)
+  sort                Int?                  @default(0)
+  status              Int                   @default(1) @db.TinyInt
+  create_time         DateTime              @default(now()) @db.DateTime(0)
+  update_time         DateTime              @default(now()) @db.DateTime(0)
+  is_deleted          Int                   @default(0) @db.TinyInt
+  sys_role_permission sys_role_permission[]
+
+  @@index([is_deleted], map: "idx_is_deleted")
+  @@index([parent_id], map: "idx_parent_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_position {
+  id          BigInt     @id @default(autoincrement())
+  pos_code    String     @unique(map: "uk_pos_code") @db.VarChar(20)
+  pos_name    String     @db.VarChar(50)
+  level       Int        @default(1)
+  sort        Int?       @default(0)
+  status      Int        @default(1) @db.TinyInt
+  remark      String?    @db.VarChar(500)
+  create_time DateTime   @default(now()) @db.DateTime(0)
+  update_time DateTime   @default(now()) @db.DateTime(0)
+  is_deleted  Int        @default(0) @db.TinyInt
+  sys_user    sys_user[]
+
+  @@index([is_deleted], map: "idx_is_deleted")
+  @@index([level], map: "idx_level")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_role {
+  id                  BigInt                @id @default(autoincrement())
+  role_code           String                @unique(map: "uk_role_code") @db.VarChar(20)
+  role_name           String                @db.VarChar(50)
+  description         String?               @db.VarChar(200)
+  status              Int                   @default(1) @db.TinyInt
+  sort                Int?                  @default(0)
+  create_time         DateTime              @default(now()) @db.DateTime(0)
+  update_time         DateTime              @default(now()) @db.DateTime(0)
+  is_deleted          Int                   @default(0) @db.TinyInt
+  sys_role_permission sys_role_permission[]
+  sys_user_role       sys_user_role[]
+
+  @@index([is_deleted], map: "idx_is_deleted")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_role_permission {
+  id             BigInt         @id @default(autoincrement())
+  role_id        BigInt
+  permission_id  BigInt
+  create_time    DateTime       @default(now()) @db.DateTime(0)
+  sys_permission sys_permission @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_rp_permission")
+  sys_role       sys_role       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_rp_role")
+
+  @@unique([role_id, permission_id], map: "uk_role_permission")
+  @@index([permission_id], map: "idx_permission_id")
+  @@index([role_id], map: "idx_role_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_user {
+  id               BigInt          @id @default(autoincrement())
+  emp_no           String          @unique(map: "uk_emp_no") @db.VarChar(20)
+  username         String          @unique(map: "uk_username") @db.VarChar(50)
+  password         String          @db.VarChar(255)
+  real_name        String          @db.VarChar(50)
+  nickname         String?         @db.VarChar(50)
+  gender           Int             @default(1) @db.TinyInt
+  mobile           String          @db.VarChar(11)
+  email            String?         @db.VarChar(100)
+  avatar           String?         @db.VarChar(255)
+  id_card          String?         @db.VarChar(18)
+  address          String?         @db.VarChar(200)
+  current_address  String?         @db.VarChar(200)
+  school           String?         @db.VarChar(100)
+  major            String?         @db.VarChar(100)
+  dept_id          BigInt?
+  position_id      BigInt?
+  status           Int             @default(1) @db.TinyInt
+  entry_date       DateTime?       @db.Date
+  contract_expire  DateTime?       @db.Date
+  probation_end    DateTime?       @db.Date
+  last_login_time  DateTime?       @db.DateTime(0)
+  last_login_ip    String?         @db.VarChar(50)
+  login_fail_count Int?            @default(0)
+  lock_time        DateTime?       @db.DateTime(0)
+  create_time      DateTime        @default(now()) @db.DateTime(0)
+  update_time      DateTime        @default(now()) @db.DateTime(0)
+  is_deleted       Int             @default(0) @db.TinyInt
+  sys_department   sys_department? @relation(fields: [dept_id], references: [id], onUpdate: Restrict, map: "fk_user_dept")
+  sys_position     sys_position?   @relation(fields: [position_id], references: [id], onUpdate: Restrict, map: "fk_user_position")
+  sys_user_role    sys_user_role[]
+
+  @@index([dept_id], map: "idx_dept_id")
+  @@index([is_deleted], map: "idx_is_deleted")
+  @@index([mobile], map: "idx_mobile")
+  @@index([position_id], map: "idx_position_id")
+  @@index([real_name], map: "idx_real_name")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sys_user_role {
+  id          BigInt   @id @default(autoincrement())
+  user_id     BigInt
+  role_id     BigInt
+  create_time DateTime @default(now()) @db.DateTime(0)
+  sys_role    sys_role @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_ur_role")
+  sys_user    sys_user @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_ur_user")
+
+  @@unique([user_id, role_id], map: "uk_user_role")
+  @@index([role_id], map: "idx_role_id")
+  @@index([user_id], map: "idx_user_id")
+}
+
+model oa_expense {
+  id               BigInt    @id @default(autoincrement())
+  expense_no       String    @unique(map: "uk_expense_no") @db.VarChar(30)
+  user_id          BigInt
+  dept_id          BigInt?
+  type             String    @db.VarChar(20)
+  title            String    @db.VarChar(100)
+  total_amount     Decimal   @db.Decimal(10, 2)
+  status           String    @default("pending") @db.VarChar(20)
+  reason           String?   @db.VarChar(500)
+  financial_remark String?   @db.VarChar(500)
+  verify_time      DateTime? @db.DateTime(0)
+  create_time      DateTime  @default(now()) @db.DateTime(0)
+  update_time      DateTime  @default(now()) @db.DateTime(0)
+  is_deleted       Int       @default(0) @db.TinyInt
+
+  @@index([status], map: "idx_status")
+  @@index([user_id], map: "idx_user_id")
+  @@index([create_time], map: "idx_create_time")
+}
+
+model oa_expense_detail {
+  id          BigInt   @id @default(autoincrement())
+  expense_id  BigInt
+  item_date   DateTime @db.Date
+  category    String   @db.VarChar(50)
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?  @db.VarChar(500)
+  invoice_url String?  @db.VarChar(255)
+  create_time DateTime @default(now()) @db.DateTime(0)
+
+  @@index([expense_id], map: "idx_expense_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_announcement_confirm {
+  id              BigInt    @id @default(autoincrement())
+  announcement_id BigInt
+  user_id         BigInt
+  is_confirmed    Int?      @default(0) @db.TinyInt
+  confirmed_time  DateTime? @db.DateTime(0)
+  create_time     DateTime? @default(now()) @db.DateTime(0)
+
+  @@unique([announcement_id, user_id], map: "uk_announcement_user")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_asset_borrow {
+  id                   BigInt    @id @default(autoincrement())
+  asset_id             BigInt
+  borrower_id          BigInt
+  borrow_time          DateTime  @db.DateTime(0)
+  expected_return_time DateTime? @db.DateTime(0)
+  actual_return_time   DateTime? @db.DateTime(0)
+  purpose              String?   @db.VarChar(500)
+  status               String?   @default("borrowed") @db.VarChar(20)
+  approver_id          BigInt?
+  create_time          DateTime? @default(now()) @db.DateTime(0)
+  update_time          DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([asset_id], map: "idx_asset_id")
+  @@index([borrower_id], map: "idx_borrower_id")
+  @@index([status], map: "idx_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_attendance_rule {
+  id                    BigInt    @id @default(autoincrement())
+  name                  String    @db.VarChar(100)
+  work_start            DateTime  @default(dbgenerated("'09:00:00'")) @db.Time(0)
+  work_end              DateTime  @default(dbgenerated("'18:00:00'")) @db.Time(0)
+  flexible_minutes      Int?      @default(30)
+  late_threshold        Int?      @default(30)
+  early_leave_threshold Int?      @default(30)
+  status                Int?      @default(1) @db.TinyInt
+  create_time           DateTime? @default(now()) @db.DateTime(0)
+  update_time           DateTime? @default(now()) @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_meeting_booking {
+  id          BigInt    @id @default(autoincrement())
+  room_id     BigInt
+  meeting_id  BigInt?
+  booker_id   BigInt
+  start_time  DateTime  @db.DateTime(0)
+  end_time    DateTime  @db.DateTime(0)
+  status      String?   @default("booked") @db.VarChar(20)
+  create_time DateTime? @default(now()) @db.DateTime(0)
+  update_time DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([booker_id], map: "idx_booker_id")
+  @@index([room_id], map: "idx_room_id")
+  @@index([start_time, end_time], map: "idx_time")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_meeting_room {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  location    String?   @db.VarChar(200)
+  capacity    Int?      @default(10)
+  equipment   Json?
+  status      Int?      @default(1) @db.TinyInt
+  create_time DateTime? @default(now()) @db.DateTime(0)
+  update_time DateTime? @default(now()) @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_project_member {
+  id          BigInt    @id @default(autoincrement())
+  project_id  BigInt
+  user_id     BigInt
+  role        String?   @default("member") @db.VarChar(50)
+  join_date   DateTime? @db.DateTime(0)
+  create_time DateTime? @default(now()) @db.DateTime(0)
+
+  @@unique([project_id, user_id], map: "uk_project_user")
+  @@index([project_id], map: "idx_project_id")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_salary_confirm {
+  id                BigInt    @id @default(autoincrement())
+  salary_id         BigInt
+  user_id           BigInt
+  is_confirmed      Int?      @default(0) @db.TinyInt
+  confirmed_time    DateTime? @db.DateTime(0)
+  has_objection     Int?      @default(0) @db.TinyInt
+  objection_content String?   @db.Text
+  objection_status  String?   @db.VarChar(20)
+  create_time       DateTime? @default(now()) @db.DateTime(0)
+  update_time       DateTime? @default(now()) @db.DateTime(0)
+
+  @@unique([salary_id, user_id], map: "uk_salary_user")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_schedule_reminder {
+  id          BigInt    @id @default(autoincrement())
+  schedule_id BigInt
+  user_id     BigInt
+  remind_time DateTime  @db.DateTime(0)
+  remind_type String?   @default("system") @db.VarChar(20)
+  is_sent     Int?      @default(0) @db.TinyInt
+  create_time DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([remind_time], map: "idx_remind_time")
+  @@index([schedule_id], map: "idx_schedule_id")
+  @@index([user_id], map: "idx_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oa_task_comment {
+  id          BigInt    @id @default(autoincrement())
+  task_id     BigInt
+  user_id     BigInt
+  content     String    @db.Text
+  attachments Json?
+  create_time DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([task_id], map: "idx_task_id")
+  @@index([user_id], map: "idx_user_id")
+}
+
+model hr_transfer {
+  id             BigInt    @id @default(autoincrement())
+  user_id        BigInt
+  transfer_no    String    @unique @db.VarChar(30)
+  transfer_type  String    @db.VarChar(20)
+  from_dept      String    @db.VarChar(50)
+  to_dept        String    @db.VarChar(50)
+  from_position  String    @db.VarChar(50)
+  to_position    String    @db.VarChar(50)
+  effective_date DateTime  @db.Date
+  reason         String?   @db.VarChar(500)
+  approver_id    BigInt?
+  status         String    @default("pending") @db.VarChar(20)
+  remark         String?   @db.VarChar(500)
+  create_time    DateTime  @default(now()) @db.DateTime(0)
+  update_time    DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([user_id], map: "idx_transfer_user_id")
+  @@index([status], map: "idx_transfer_status")
+}
+
+model hr_training {
+  id            BigInt    @id @default(autoincrement())
+  training_no   String    @unique @db.VarChar(30)
+  training_name String    @db.VarChar(100)
+  training_type String    @default("技能培训") @db.VarChar(30)
+  instructor    String?   @db.VarChar(50)
+  start_date    DateTime? @db.Date
+  end_date      DateTime? @db.Date
+  location      String?   @db.VarChar(100)
+  hours         Int?      @default(0)
+  participants  Int?      @default(0)
+  status        String    @default("not_started") @db.VarChar(20)
+  score         Int?
+  remark        String?   @db.VarChar(500)
+  create_time   DateTime  @default(now()) @db.DateTime(0)
+  update_time   DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([status], map: "idx_training_status")
+}
+
+model hr_offboarding {
+  id              BigInt    @id @default(autoincrement())
+  user_id         BigInt
+  offboard_no     String    @unique @db.VarChar(30)
+  offboard_type   String    @default("主动辞职") @db.VarChar(20)
+  apply_date      DateTime? @db.Date
+  last_work_date  DateTime? @db.Date
+  reason          String?   @db.VarChar(500)
+  handover_status String    @default("pending") @db.VarChar(20)
+  approver_id     BigInt?
+  status          String    @default("pending") @db.VarChar(20)
+  archive_status  String    @default("not_archived") @db.VarChar(20)
+  remark          String?   @db.VarChar(500)
+  create_time     DateTime  @default(now()) @db.DateTime(0)
+  update_time     DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([user_id], map: "idx_offboard_user_id")
+  @@index([status], map: "idx_offboard_status")
+}
