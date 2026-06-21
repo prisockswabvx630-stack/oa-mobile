@@ -31,6 +31,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
         working-directory: ${{ matrix.project }}
+        env:
+          PNPM_CONFIG_MINIMUM_RELEASE_AGE: "0"
 
       - name: Generate Prisma (server)
         if: matrix.project == 'oa_server'

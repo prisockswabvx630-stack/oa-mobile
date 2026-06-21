@@ -43,6 +43,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: ${{ matrix.project }}
+        env:
+          PNPM_CONFIG_MINIMUM_RELEASE_AGE: "0"
 
       - name: Generate Prisma Client (oa_server only)
         if: matrix.project == 'oa_server'
@@ -83,6 +85,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: ${{ matrix.project }}
+        env:
+          PNPM_CONFIG_MINIMUM_RELEASE_AGE: "0"
 
       - name: Generate Prisma Client (oa_server only)
         if: matrix.project == 'oa_server'
