@@ -1,0 +1,89 @@
+# ============================================
+# OA 系统 - Docker Compose 一键部署
+# 用法:
+#   1. 复制 .env.example 为 .env 并填入真实值
+#   2. docker compose up -d
+#   3. 首次运行需初始化数据库: docker compose exec oa-server npx prisma db push
+# ============================================
+
+version: "3.8"
+
+services:
+  # ========== MySQL 数据库 ==========
+  mysql:
+    image: mysql:8.0
+    container_name: oa-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-oa_system}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./oa_server/prisma/schema.prisma:/schema.prisma:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - oa-network
+
+  # ========== 后端 API 服务 ==========
+  oa-server:
+    build:
+      context: ./oa_server
+      dockerfile: Dockerfile
+    container_name: oa-server
+    restart: always
+    environment:
+      DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD:-root}@mysql:3306/${MYSQL_DATABASE:-oa_system}?charset=utf8mb4"
+      JWT_SECRET: ${JWT_SECRET:-oa_jwt_secret_change_me}
+      PORT: "3000"
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - oa-network
+
+  # ========== 管理后台（PC Web） ==========
+  oa-admin:
+    build:
+      context: ./oa_admin
+      dockerfile: Dockerfile
+    container_name: oa-admin
+    restart: always
+    ports:
+      - "${ADMIN_PORT:-8080}:80"
+    depends_on:
+      - oa-server
+    networks:
+      - oa-network
+
+  # ========== 移动端 Web 版 ==========
+  oa-domes:
+    build:
+      context: ./oa_domes
+      dockerfile: Dockerfile
+    container_name: oa-domes
+    restart: always
+    ports:
+      - "${DOMES_PORT:-8081}:80"
+    depends_on:
+      - oa-server
+    networks:
+      - oa-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  oa-network:
+    driver: bridge

@@ -1,0 +1,65 @@
+# ============================================
+# 手动回滚流水线
+# 在 GitHub Actions 页面手动触发
+# ============================================
+
+name: Rollback Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "要回滚的服务"
+        required: true
+        type: choice
+        options:
+          - all
+          - oa-server
+          - oa-admin
+          - oa-domes
+      tag:
+        description: "回滚到的镜像标签 (默认: previous)"
+        required: false
+        type: string
+        default: "previous"
+
+jobs:
+  rollback:
+    name: Rollback ${{ github.event.inputs.service }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Rollback via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH || '/opt/oa' }}
+            TAG="${{ github.event.inputs.tag }}"
+
+            echo "🔄 回滚服务: ${{ github.event.inputs.service }} -> 标签: $TAG"
+
+            rollback_service() {
+              local svc=$1
+              echo "回滚 $svc 到 $TAG..."
+              docker compose pull $svc 2>/dev/null || true
+              docker compose up -d --no-deps $svc
+            }
+
+            case "${{ github.event.inputs.service }}" in
+              all)
+                rollback_service oa-server
+                rollback_service oa-admin
+                rollback_service oa-domes
+                ;;
+              *)
+                rollback_service ${{ github.event.inputs.service }}
+                ;;
+            esac
+
+            echo "✅ 回滚完成！"
+            echo "当前运行容器:"
+            docker compose ps

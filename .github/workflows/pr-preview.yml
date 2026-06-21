@@ -1,0 +1,47 @@
+# ============================================
+# PR 预览构建（检查 PR 能否正确构建）
+# ============================================
+
+name: PR Preview Build
+
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-check:
+    name: Build All Projects
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [oa_server, oa_admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: ${{ matrix.project }}/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ matrix.project }}
+
+      - name: Generate Prisma (server)
+        if: matrix.project == 'oa_server'
+        run: npx prisma generate
+        working-directory: ${{ matrix.project }}
+
+      - name: Build
+        run: |
+          if [ "${{ matrix.project }}" = "oa_server" ]; then
+            npx tsc
+          else
+            pnpm build
+          fi
+        working-directory: ${{ matrix.project }}

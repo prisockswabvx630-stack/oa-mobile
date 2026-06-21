@@ -1,0 +1,19 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+
+# 环境变量
+.env
+.env.local
+
+# 日志
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Docker (affects only source copy, not Dockerfile itself)
+docker-compose.yml
