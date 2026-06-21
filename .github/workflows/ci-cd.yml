@@ -41,7 +41,7 @@ jobs:
           cache-dependency-path: ${{ matrix.project }}/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
         working-directory: ${{ matrix.project }}
         env:
           PNPM_CONFIG_MINIMUM_RELEASE_AGE: "0"
@@ -83,7 +83,7 @@ jobs:
           cache-dependency-path: ${{ matrix.project }}/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
         working-directory: ${{ matrix.project }}
         env:
           PNPM_CONFIG_MINIMUM_RELEASE_AGE: "0"
