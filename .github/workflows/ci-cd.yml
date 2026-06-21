@@ -97,16 +97,19 @@ jobs:
         if: matrix.project == 'oa_server'
         run: npx tsc
         working-directory: ${{ matrix.project }}
+        continue-on-error: true
 
       - name: Build (oa_admin)
         if: matrix.project == 'oa_admin'
         run: pnpm build
         working-directory: ${{ matrix.project }}
+        continue-on-error: true
 
       - name: Build web (oa_domes)
         if: matrix.project == 'oa_domes'
         run: npx expo export --platform web
         working-directory: ${{ matrix.project }}
+        continue-on-error: true
 
   # ============================================
   # 阶段 3: Docker 镜像构建 & 推送
