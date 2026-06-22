@@ -35,9 +35,7 @@ services:
 
   # ========== 后端 API 服务 ==========
   oa-server:
-    build:
-      context: ./oa_server
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME:-song630}/oa-server:latest
     container_name: oa-server
     restart: always
     environment:
@@ -54,9 +52,7 @@ services:
 
   # ========== 管理后台（PC Web） ==========
   oa-admin:
-    build:
-      context: ./oa_admin
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME:-song630}/oa-admin:latest
     container_name: oa-admin
     restart: always
     ports:
@@ -68,9 +64,7 @@ services:
 
   # ========== 移动端 Web 版 ==========
   oa-domes:
-    build:
-      context: ./oa_domes
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME:-song630}/oa-domes:latest
     container_name: oa-domes
     restart: always
     ports:
